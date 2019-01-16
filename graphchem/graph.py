@@ -102,45 +102,7 @@ class Graph:
                     char
                 ))
         self.smiles = smiles
-        self.nodes = self._connect(smiles)
-        self.__initialize()
-
-    def __repr__(self):
-        '''Returns graph representation, with each atom's ID, atom symbol and
-        connections
-        '''
-
-        r = 'ID\tAtom\tConnections\n'
-        for node in self.nodes:
-            r += '{}\t{}\t{}\n'.format(
-                node._id,
-                node._atom,
-                [(c[0], c[2]) for c in node.connections]
-            )
-        return r
-
-    def pack(self):
-        '''Returns:
-            list: list of tuples, where each tuple is an atom's vector
-            representation in the form:
-
-            (carbon, oxygen, number of single bonds, number of double bonds,
-            number of triple bonds, number of aromatic bonds, number of
-            disconnected bonds)
-        '''
-
-        return [n.pack() for n in self.nodes]
-
-    @staticmethod
-    def _connect(smiles):
-        '''Static method: creates graph nodes from each SMILES character
-
-        Returns:
-            list: list of _Node objects, where each node object represents an
-                atom and its bonds/connections
-        '''
-
-        nodes = []
+        self.nodes = []
         branch_lvl = 0
         bond_type = BONDS['-']
         bond_name = BOND_NAMES['-']
@@ -161,49 +123,67 @@ class Graph:
                 bond_name = BOND_NAMES[char]
             elif LINK.match(char) is not None:
                 _offset += 1
-                nodes[-1]._link = int(char)
-                for li, node in enumerate(nodes[0: -1]):
+                self.nodes[-1]._link = int(char)
+                for li, node in enumerate(self.nodes[0: -1]):
                     if node._link == int(char):
                         node.connections.append(
                             (idx - _offset, bond_type, bond_name)
                         )
-                        nodes[-1].connections.append(
+                        self.nodes[-1].connections.append(
                             (li, bond_type, bond_name)
                         )
                         break
             else:
                 new_node = _Node(idx - _offset, char, branch_lvl)
                 if idx > 0:
-                    for i in range(1, len(nodes) + 1):
-                        if nodes[-1 * i]._branch_lvl == branch_lvl:
+                    for i in range(1, len(self.nodes) + 1):
+                        if self.nodes[-1 * i]._branch_lvl == branch_lvl:
                             if _new_branch:
                                 continue
                             else:
-                                nodes[-1 * i].connections.append(
+                                self.nodes[-1 * i].connections.append(
                                     (idx - _offset, bond_type, bond_name)
                                 )
                                 new_node.connections.append(
-                                    (len(nodes) - i, bond_type, bond_name)
+                                    (len(self.nodes) - i, bond_type, bond_name)
                                 )
                                 break
-                        elif nodes[-1 * i]._branch_lvl < branch_lvl:
-                            nodes[-1 * i].connections.append(
+                        elif self.nodes[-1 * i]._branch_lvl < branch_lvl:
+                            self.nodes[-1 * i].connections.append(
                                 (idx - _offset, bond_type, bond_name)
                             )
                             new_node.connections.append(
-                                (len(nodes) - i, bond_type, bond_name)
+                                (len(self.nodes) - i, bond_type, bond_name)
                             )
                             _new_branch = False
                             break
-                nodes.append(new_node)
+                self.nodes.append(new_node)
                 bond_type = BONDS['-']
                 bond_name = BOND_NAMES['-']
-        return nodes
-
-    def __initialize(self):
-        '''Private method: initializes each _Node/atom in self.nodes, creating
-        vector representations for each atom's bonds
-        '''
-
         for node in self.nodes:
             node.initialize()
+
+    def __repr__(self):
+        '''Returns graph representation, with each atom's ID, atom symbol and
+        connections
+        '''
+
+        r = 'ID\tAtom\tConnections\n'
+        for node in self.nodes:
+            r += '{}\t{}\t{}\n'.format(
+                node._id,
+                node._atom,
+                [(c[0], c[2]) for c in node.connections]
+            )
+        return r
+
+    def pack(self):
+        '''Returns:
+            list: list of tuples, where each tuple is an atom's vector
+                representation in the form:
+            (carbon, oxygen, number of single bonds, number of double bonds,
+            number of triple bonds, number of aromatic bonds, number of
+            disconnected bonds)
+        '''
+
+        return [n.pack() for n in self.nodes]
