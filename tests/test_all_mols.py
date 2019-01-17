@@ -1,5 +1,5 @@
+from graphchem import Graph
 import csv
-import graph
 
 
 def main():
@@ -7,14 +7,11 @@ def main():
     with open('mols.csv', 'r') as csv_file:
         reader = csv.DictReader(csv_file)
         for row in reader:
-            g = graph.Graph(row['smiles'])
-            p = g.pack()
-            print()
-            print(g.smiles)
-            print()
+            g = Graph(row['smiles'])
+            print('\nMolecule: {}'.format(g.smiles))
             print(g)
-            for i in p:
-                print(i)
+            for atom in g.pack():
+                print(atom)
 
 
 if __name__ == '__main__':
