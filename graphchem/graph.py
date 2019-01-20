@@ -271,7 +271,7 @@ class Graph:
         for atom in self.atoms:
             f = self._get_feed(atom)
             prev_feed.append(f)
-            new_states.append(transition_fn(f))
+            new_states.append(transition_fn([f]))
 
         for idx, atom in enumerate(self.atoms):
             atom.state = new_states[idx]
