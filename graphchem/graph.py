@@ -12,6 +12,12 @@ from re import compile
 # Vector representation for each atom
 ATOMS = {'C': [1, 0], 'O': [0, 1]}
 
+# Number of valence electons available for each atom
+NUM_VALENCE = {'C': 4, 'O': 2}
+
+# Correlation between number of bonds and bond angle
+BOND_ANGLES = {1: 360, 2: 180, 3: 120, 4: 109.5}
+
 # Vector representation for each bond type
 BONDS = {
     '-': [1, 0, 0, 0, 0],
@@ -34,27 +40,31 @@ BOND_NAMES = {
 LINK = compile(r'\d')
 
 
-class _Node:
+class _Atom:
 
-    def __init__(self, id, atom, branch_lvl):
-        '''Node object: represents an atom and its connections/bonds
+    def __init__(self, id, char, branch_lvl):
+        '''Atom object: represents an atom and its connections/bonds
 
         Args:
             id (int): identifier for the atom
-            atom (str): symbol for the atom
+            char (str): symbol for the atom
             branch_lvl (int): used by Graph._connect to determine branch
                 connections
         '''
 
         self.connections = []
+        self.state = None
         self._id = id
-        self._atom = atom
+        self._char = char
         self._bonds = []
         self._branch_lvl = branch_lvl
         self._link = None
 
     def initialize(self):
-        '''Creates vector representations for the atom's bonds
+        '''Creates vector representations for the atom, its bonds, and its
+        bond angle
+
+        TODO: add more indices for atom distinctions
         '''
 
         bonds = [b[1] for b in self.connections]
@@ -66,16 +76,19 @@ class _Node:
             sum([b[4] for b in bonds])
         ]
 
-    def pack(self):
-        '''Returns:
-            tuple: (carbon, oxygen, number of single bonds, number of double
-                bonds, number of triple bonds, number of aromatic bonds,
-                number of disconnected bonds)
-        '''
+        bond_angle = BOND_ANGLES[(
+            NUM_VALENCE[self._char] -
+            (
+                self._bonds[0] +
+                2 * self._bonds[1] +
+                3 * self._bonds[2]
+            ) + sum(self._bonds)
+        )] / 360
 
-        packed = [a for a in ATOMS[self._atom]]
-        packed.extend([b for b in self._bonds])
-        return tuple(packed)
+        self.state = []
+        self.state.extend([a for a in ATOMS[self._char]])
+        self.state.append(bond_angle)
+        self.state.extend([b for b in self._bonds])
 
 
 class Graph:
@@ -101,8 +114,120 @@ class Graph:
                 raise ValueError('Invalid link placement for {}'.format(
                     char
                 ))
+        self.atoms = self._construct(smiles)
         self.smiles = smiles
-        self.nodes = []
+        self.reset_graph()
+
+    def __len__(self):
+
+        return len(self.atoms)
+
+    def __repr__(self):
+        '''Returns graph representation, with each atom's ID, atom symbol and
+        connections
+        '''
+
+        r = 'ID\tAtom\tConnections\n'
+        for atom in self.atoms:
+            r += '{}\t{}\t{}\n'.format(
+                atom._id,
+                atom._char,
+                [(c[0], c[2]) for c in atom.connections]
+            )
+        return r
+
+    @property
+    def feed_len(self):
+        '''Returns the length of each atom's feed, i.e. sum of neighbor states
+        appended to current state
+        '''
+
+        return 2 * len(self.atoms[0].state)
+
+    @property
+    def state_len(self):
+        '''Returns the length of each atom's state'''
+
+        return len(self.atoms[0].state)
+
+    @property
+    def feeds(self):
+        '''Returns all atoms' previous feeds (each timestep is generated from
+        self.propagate using supplied transition function)
+        '''
+
+        return self.__prev_feeds
+
+    @property
+    def states(self):
+        '''Returns all atoms' states'''
+
+        return [a.state for a in self.atoms]
+
+    def reset_graph(self):
+
+        self.__prev_feeds = [[] for _ in range(len(self.atoms))]
+        for a in self.atoms:
+            a.initialize()
+
+    def propagate(self, transition_fn):
+        '''Updates the states of all atoms using supplied function
+
+        Args:
+            transition_fn (callable): function to perform operation; this
+                function must return a single value, int or float
+        '''
+
+        if not callable(transition_fn):
+            raise ReferenceError('Supplied `transition_fn` not callable')
+
+        feed = []
+        for idx, a in enumerate(self.atoms):
+            a_feed = [i for i in a.state]
+            a_feed.extend(self._stack(
+                [self.atoms[c[0]].state for c in a.connections]
+            ))
+            feed.append(a_feed)
+            self.__prev_feeds[idx].append(a_feed)
+        new_states = transition_fn(feed)
+        for idx, a in enumerate(self.atoms):
+            if len(new_states[idx]) != len(a.state):
+                raise RuntimeError(
+                    'Transition function did not return a state equal to the'
+                    ' length of the current state: {}, {}'.format(
+                        len(new_states[idx]),
+                        len(a.state)
+                    )
+                )
+            a.state = new_states[idx]
+
+    @staticmethod
+    def _stack(it):
+        '''Stacks each sub-iterable's values by index (similar to tf.reduce_sum)
+
+        Args:
+            it (iterable): iterable of iterables, where each sub-iterable is
+                of equal length and is populated with ints or floats
+        Returns:
+            list: single-dimension list of stacked items
+        '''
+
+        stack = []
+        for i in range(len(it[0])):
+            stack.append(sum([s[i] for s in it]))
+        return stack
+
+    @staticmethod
+    def _construct(smiles):
+        '''Creates _Atom objects for supplied molecule
+
+        Args:
+            smiles (str): molecule's SMILES string
+        Returns:
+            list: each element is an _Atom object
+        '''
+
+        atoms = []
         branch_lvl = 0
         bond_type = BONDS['-']
         bond_name = BOND_NAMES['-']
@@ -123,67 +248,58 @@ class Graph:
                 bond_name = BOND_NAMES[char]
             elif LINK.match(char) is not None:
                 _offset += 1
-                self.nodes[-1]._link = int(char)
-                for li, node in enumerate(self.nodes[0: -1]):
-                    if node._link == int(char):
-                        node.connections.append(
+                atoms[-1]._link = int(char)
+                for li, atom in enumerate(atoms[0: -1]):
+                    if atom._link == int(char):
+                        atom.connections.append(
                             (idx - _offset, bond_type, bond_name)
                         )
-                        self.nodes[-1].connections.append(
+                        atoms[-1].connections.append(
                             (li, bond_type, bond_name)
                         )
                         break
             else:
-                new_node = _Node(idx - _offset, char, branch_lvl)
+                new_atom = _Atom(idx - _offset, char, branch_lvl)
                 if idx > 0:
-                    for i in range(1, len(self.nodes) + 1):
-                        if self.nodes[-1 * i]._branch_lvl == branch_lvl:
+                    for i in range(1, len(atoms) + 1):
+                        if atoms[-1 * i]._branch_lvl == branch_lvl:
                             if _new_branch:
                                 continue
                             else:
-                                self.nodes[-1 * i].connections.append(
+                                atoms[-1 * i].connections.append(
                                     (idx - _offset, bond_type, bond_name)
                                 )
-                                new_node.connections.append(
-                                    (len(self.nodes) - i, bond_type, bond_name)
+                                new_atom.connections.append(
+                                    (len(atoms) - i, bond_type, bond_name)
                                 )
                                 break
-                        elif self.nodes[-1 * i]._branch_lvl < branch_lvl:
-                            self.nodes[-1 * i].connections.append(
+                        elif atoms[-1 * i]._branch_lvl < branch_lvl:
+                            atoms[-1 * i].connections.append(
                                 (idx - _offset, bond_type, bond_name)
                             )
-                            new_node.connections.append(
-                                (len(self.nodes) - i, bond_type, bond_name)
+                            new_atom.connections.append(
+                                (len(atoms) - i, bond_type, bond_name)
                             )
                             _new_branch = False
                             break
-                self.nodes.append(new_node)
+                atoms.append(new_atom)
                 bond_type = BONDS['-']
                 bond_name = BOND_NAMES['-']
-        for node in self.nodes:
-            node.initialize()
+        return atoms
 
-    def __repr__(self):
-        '''Returns graph representation, with each atom's ID, atom symbol and
-        connections
-        '''
 
-        r = 'ID\tAtom\tConnections\n'
-        for node in self.nodes:
-            r += '{}\t{}\t{}\n'.format(
-                node._id,
-                node._atom,
-                [(c[0], c[2]) for c in node.connections]
-            )
-        return r
+def test(feed):
 
-    def pack(self):
-        '''Returns:
-            list: list of tuples, where each tuple is an atom's vector
-                representation in the form:
-            (carbon, oxygen, number of single bonds, number of double bonds,
-            number of triple bonds, number of aromatic bonds, number of
-            disconnected bonds)
-        '''
+    return feed[int(len(feed) / 2):]
 
-        return [n.pack() for n in self.nodes]
+
+if __name__ == '__main__':
+
+    g = Graph('CC1=CC=C(C)O1')
+    g.propagate(test)
+    for f in g.feeds:
+        print(f)
+    print()
+    g.propagate(test)
+    for f in g.feeds:
+        print(f)
