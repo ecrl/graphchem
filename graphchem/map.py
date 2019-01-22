@@ -98,13 +98,3 @@ class GraphMapper:
             self._num_propagations,
             filename=self._model_filename
         )
-
-
-if __name__ == '__main__':
-
-    gm = GraphMapper()
-    gm.add_graph('COCOCOC', 7)
-    gm.add_graph('CCOCC', 5)
-    gm.train(epochs=300)
-    preds = gm.predict()
-    print(preds)

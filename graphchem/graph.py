@@ -8,6 +8,9 @@
 
 # Stdlib imports
 from re import compile
+from statistics import stdev
+
+from numpy import asarray
 
 # Vector representation for each atom
 ATOMS = {'C': [1, 0], 'O': [0, 1]}
@@ -286,20 +289,3 @@ class Graph:
                 bond_type = BONDS['-']
                 bond_name = BOND_NAMES['-']
         return atoms
-
-
-def test(feed):
-
-    return feed[int(len(feed) / 2):]
-
-
-if __name__ == '__main__':
-
-    g = Graph('CC1=CC=C(C)O1')
-    g.propagate(test)
-    for f in g.feeds:
-        print(f)
-    print()
-    g.propagate(test)
-    for f in g.feeds:
-        print(f)
