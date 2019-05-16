@@ -16,55 +16,111 @@ Future plans for GraphChem include:
 - Have Python 3.X installed
 
 ### Method 1: pip
-- **pip install graphchem**
+```
+$ pip install graphchem
+```
 
 ### Method 2: From Source
-- Download the GraphChem repository, navigate to the download location and execute **"python setup.py install"**
+```
+$ git clone https://github.com/tjkessler/graphchem
+$ cd graphchem
+$ python setup.py install
+```
 
 There are currently no dependencies for GraphChem.
 
 # Usage:
 
-Import the Graph object and initialize a Graph using a SMILES string. For this example, we will use 2,5-dimethylfuran:
+Import the Molecule object and initialize it using a SMILES string. For this example, we will use 2,5-dimethylfuran:
 
 ```python
-from graphchem import Graph
-g = Graph('CC1=CC=C(C)O1')
+from graphchem import Molecule
+mol = Molecule('CC1=CC=C(C)O1')
 ```
 
-Note: only molecules containing carbon and/or oxygen atoms are currently supported.
+Note: only molecules containing Boron, Carbon, Nitrogen, Oxygen, Phosphorus, Sulfur, Flourine and/or Iodine are currently supported.
 
-If we print the Graph, we can display each atom and its bonds:
+If we print the Molecule, we can display each atom and its bonds:
 
 ```python
->>> print(g)
+>>> print(mol)
 ID      Atom    Connections
-0       C       [(1, 'Single')]
-1       C       [(0, 'Single'), (2, 'Double'), (6, 'Single')]
-2       C       [(1, 'Double'), (3, 'Single')]
-3       C       [(2, 'Single'), (4, 'Double')]
-4       C       [(3, 'Double'), (5, 'Single'), (6, 'Single')]
-5       C       [(4, 'Single')]
-6       O       [(4, 'Single'), (1, 'Single')]
+0       C       [(1, '-')]
+1       C       [(0, '-'), (2, '='), (6, '-')]
+2       C       [(1, '='), (3, '-')]
+3       C       [(2, '-'), (4, '=')]
+4       C       [(3, '='), (5, '-'), (6, '-')]
+5       C       [(4, '-')]
+6       O       [(4, '-'), (1, '-')]
 ```
 
-Tuples in each atom's list of connections represent the ID of an atom it is bonded to and the bond type.
+Tuples in each atom's list of connections represent the ID of an atom it is bonded to and the bond type (e.g. '-' for single bond, '=' for double bond, '#' for triple bond).
 
-The Graph's pack() method returns vector representations for each atom:
+Atom states are defined by a 20 item vector, containing a one-hot representation of the atom type (e.g. [1, 0, 0, 0, 0, 0, 0, 0, 0, 0] for Boron, [0, 1, 0, 0, 0, 0, 0, 0, 0, 0] for carbon), sums of all bond types (e.g. [0, 1, 0, 0, 0, 0, 0, 0] for single bond, [0, 0, 1, 0, 0, 0, 0, 0] for double bond), and whether the atom exists in a ring or not ([1, 0] or [0, 1], respectively).
+
+To get the states of each atom:
 
 ```python
->>> for atom in g.pack():
->>>     print(atom)
-(1, 0, 1, 0, 0, 0, 0)
-(1, 0, 2, 1, 0, 0, 0)
-(1, 0, 1, 1, 0, 0, 0)
-(1, 0, 1, 1, 0, 0, 0)
-(1, 0, 2, 1, 0, 0, 0)
-(1, 0, 1, 0, 0, 0, 0)
-(0, 1, 2, 0, 0, 0, 0)
+>>> for atom in mol._atoms:
+>>>     print(atom.state)
+[0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1]
+[0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 0, 0, 0, 0, 0, 1, 0]
+[0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0]
+[0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0]
+[0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 0, 0, 0, 0, 0, 1, 0]
+[0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1]
+[0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 1, 0]
 ```
 
-The first two vector indices represent whether the atom is a carbon or oxygen atom, [1, 0] or [0, 1] respectively. Subsequent vector indices represent the number of single bonds, double bonds, triple bonds, aromatic bonds and disconnected bonds the atom has.
+The graph representation of a molecule is defined as the sum of all atom states. To get the graph representation of a molecule:
+
+```python
+>>> print(mol.repr)
+[0, 6, 0, 1, 0, 0, 0, 0, 0, 0, 0, 10, 4, 0, 0, 0, 0, 0, 5, 2]
+```
+
+When manipulating a graph, new node states are updated with a transition function. New states are derived from the current state of the node and the states of the node's neighbors. In GraphChem, atoms of a molecule correlate to the nodes in a graph, and can be updated with the molecule's "transition" method.
+
+The "transition" method accepts one argument, a callable transition function. The supplied transition function should accept two arguments, a list of length 20 correpsonding to the current state of an atom, and another list of length 20 corresponding to the sum of the states of the atom's neighbors. The supplied transition function should return a list of length 20, the new state for a given atom:
+
+```python
+def average_of_atom_and_neighbors(atom_state, neighbor_states):
+    '''Example transition function, averaging indices of the atom's state and
+    its neighbors' states
+
+    Args:
+        atom_state (list): current state of the atom, list length 20
+        neighbor_states (list): current (summed) states of the atom's
+            neighbors, list length 20
+
+    Returns:
+        list: new state of the atom, list length 20
+    '''
+    new_state = []
+    for i in range(len(atom_state)):
+        new_state.append((atom_state[i] + neighbor_states[i]) / 2)
+    return new_state
+
+mol = Molecule('CC1=CC=C(C)O1')
+mol.transition(average_of_atom_and_neighbors)
+```
+
+The new atom states and graph representation of the molecule are:
+
+```python
+>>> for atom in mol._atoms:
+>>>     print(atom.state)
+[0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.5, 0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.5]
+[0.0, 1.5, 0.0, 0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 3.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.5, 0.5]
+[0.0, 1.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 1.5, 0.0, 0.0, 0.0, 0.0, 0.0, 1.5, 0.0]
+[0.0, 1.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 1.5, 0.0, 0.0, 0.0, 0.0, 0.0, 1.5, 0.0]
+[0.0, 1.5, 0.0, 0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 3.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.5, 0.5]
+[0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.5, 0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.5]
+[0.0, 1.0, 0.0, 0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 3.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.5, 0.0]
+
+>>> print(mol.repr)
+[0.0, 9.0, 0.0, 1.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 16.0, 7.0, 0.0, 0.0, 0.0, 0.0, 0.0, 8.5, 2.0]
+```
 
 # Contributing, Reporting Issues and Other Support:
 
