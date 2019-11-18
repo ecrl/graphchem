@@ -43,45 +43,6 @@ class Molecule:
             )
         return r
 
-    @property
-    def repr(self):
-        '''Returns sum of all atom states'''
-
-        rep = []
-        for i in range(len(self._atoms[0].state)):
-            sum = 0
-            for a in self._atoms:
-                sum += a.state[i]
-            rep.append(sum)
-        return rep
-
-    def transition(self, transition_fn):
-        '''Update the state of all atoms using a supplied transition function;
-        transition function should accept two arguments, the atom's state and
-        the sum of its neighbors' states (lists, both the same length), and
-        should return a list equal to the length of the atom's state
-
-        Args:
-            transition_fn (callable): function to perform atom/neighbor
-                transition
-        '''
-
-        if not callable(transition_fn):
-            raise ValueError('Suppied transition function is not callable')
-
-        new_states = []
-        for atom in self._atoms:
-            atom_state = atom.state
-            neighbor_states = []
-            for i in range(len(atom._connections[0][0].state)):
-                sum = 0
-                for con in atom._connections:
-                    sum += con[0].state[i]
-                neighbor_states.append(sum)
-            new_states.append(transition_fn(atom_state, neighbor_states))
-        for idx, atom in enumerate(self._atoms):
-            atom.state = new_states[idx]
-
     def to_mdl(self, filename):
         '''Saves the molecule to an MDL file (requires Open Babel to be installed)
 
@@ -166,14 +127,14 @@ class Molecule:
 
                 # add connection to previous atom(s), checking branch levels
                 for atom in reversed(atoms):
-                    if atom.branch_level == branch_level:
+                    if atom._branch_level == branch_level:
                         if new_branch:
                             continue
                         else:
                             atom.add_connection(new_atom, bond_type)
                             new_atom.add_connection(atom, bond_type)
                             break
-                    elif atom.branch_level < branch_level:
+                    elif atom._branch_level < branch_level:
                         atom.add_connection(new_atom, bond_type)
                         new_atom.add_connection(atom, bond_type)
                         new_branch = False
