@@ -25,7 +25,7 @@ class Atom:
 
         self.id = id
         self.symbol = symbol
-        self.branch_level = branch_level
+        self._branch_level = branch_level
         self._connections = []
         self._link = None
         self._state = None
@@ -85,6 +85,17 @@ class Atom:
                 '{}, {}'.format(len(new_state), len(self.state))
             )
         self._state = new_state
+
+    @property
+    def connectivity(self):
+
+        connectivity = []
+        for c in self._connections:
+            con = []
+            con.extend(self.state)
+            con.extend(c[0].state)
+            connectivity.append(con)
+        return connectivity
 
     @property
     def in_ring(self):
