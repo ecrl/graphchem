@@ -7,7 +7,7 @@
 #
 
 # custom imports
-from graphchem.atom import Atom
+from graphchem import Atom
 from graphchem.atom_features import ATOM_VECTORS, BOND_VECTORS
 
 # stdlib. imports
@@ -44,7 +44,8 @@ class Molecule:
         return r
 
     def to_mdl(self, filename):
-        '''Saves the molecule to an MDL file (requires Open Babel to be installed)
+        '''Saves the molecule to an MDL file (requires Open Babel to be
+        installed)
 
         Args:
             filename (str): path to save MDL file, requires `.mdl` extension
