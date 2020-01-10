@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import find_packages, setup
 
 setup(
     name='graphchem',
@@ -9,7 +9,7 @@ setup(
     author='Travis Kessler',
     author_email='travis.j.kessler@gmail.com',
     license='MIT',
-    packages=['graphchem'],
+    packages=find_packages(),
     install_requires=['torch==1.3.1'],
     zip_safe=False
 )

@@ -7,7 +7,7 @@
 #
 
 # custom imports
-from graphchem.atom_features import ATOM_VECTORS, BOND_VECTORS
+from graphchem.chem.atom_features import ATOM_VECTORS, BOND_VECTORS
 
 
 class Atom:
@@ -56,46 +56,30 @@ class Atom:
         '''
 
         if self._state is None:
-            self._state = []
-            self._state.extend([a for a in ATOM_VECTORS[self.symbol]])
-            bonds = [c[1] for c in self._connections]
-            for i in range(len(bonds[0])):
-                sum = 0
-                for b in bonds:
-                    sum += b[i]
-                self._state.append(sum)
-            if self.in_ring:
-                self._state.extend([1, 0])
-            else:
-                self._state.extend([0, 1])
+           self._state = self._gen_state()
+           neighbor_states = [c[0]._gen_state() for c in self._connections]
+           self._state.extend([sum(s) for s in zip(*neighbor_states)])
         return self._state
 
-    @state.setter
-    def state(self, new_state):
-        '''Sets the atom's state to a new state/list; supplied state must be
-        equal in length to the current state
+    def _gen_state(self):
 
-        Args:
-            new_state (list): new state of the atom
-        '''
-
-        if len(new_state) != len(self.state):
-            raise ValueError(
-                'Length of new state != length of current state: '
-                '{}, {}'.format(len(new_state), len(self.state))
-            )
-        self._state = new_state
+        state = [a for a in ATOM_VECTORS[self.symbol]]
+        bonds = [c[1] for c in self._connections]
+        for i in range(len(bonds[0])):
+            sum = 0
+            for b in bonds:
+                sum += b[i]
+            state.append(sum)
+        if self.in_ring:
+            state.extend([1, 0])
+        else:
+            state.extend([0, 1])
+        return state
 
     @property
     def connectivity(self):
 
-        connectivity = []
-        for c in self._connections:
-            con = []
-            con.extend(self.state)
-            con.extend(c[0].state)
-            connectivity.append(con)
-        return connectivity
+        return [c[0].id for c in self._connections]
 
     @property
     def in_ring(self):

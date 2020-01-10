@@ -7,8 +7,8 @@
 #
 
 # custom imports
-from graphchem import Atom
-from graphchem.atom_features import ATOM_VECTORS, BOND_VECTORS
+from graphchem.chem.atom import Atom
+from graphchem.chem.atom_features import ATOM_VECTORS, BOND_VECTORS
 
 # stdlib. imports
 from re import compile, IGNORECASE
@@ -42,6 +42,23 @@ class Molecule:
                 [(c[0].id, c[2]) for c in atom._connections]
             )
         return r
+
+    @property
+    def atom_features(self):
+
+        return [a.state for a in self._atoms]
+
+    @property
+    def edge_connectivity(self):
+
+        atom_ids = [a.id for a in self._atoms]
+        source_atoms = []
+        target_atoms = []
+        for idx, con in enumerate([a.connectivity for a in self._atoms]):
+            for c in con:
+                source_atoms.append(atom_ids[idx])
+                target_atoms.append(c)
+        return [source_atoms, target_atoms]
 
     def to_mdl(self, filename):
         '''Saves the molecule to an MDL file (requires Open Babel to be
