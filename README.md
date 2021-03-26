@@ -29,7 +29,7 @@ If any installation issues occur with PyTorch or torch-dependent packages (notab
 
 ### Method 2: From Source
 ```
-$ git clone https://github.com/tjkessler/graphchem
+$ git clone https://github.com/ecrl/graphchem
 $ cd graphchem
 $ python setup.py install
 ```
