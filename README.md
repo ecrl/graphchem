@@ -7,7 +7,10 @@
 **GraphChem** is an open source Python package for constructing graph-based machine learning models with a focus on chemical property prediction. 
 
 Future plans for GraphChem include:
-- Rendering bond/atom contribution as an overlay on an image of the compound
+- Full API documentation, in-code documentation
+- A robust hyper-parameter and model architecture tuning runtime
+- Molecule visualization via RDKit
+- Extensive automated testing
 
 # Installation:
 
