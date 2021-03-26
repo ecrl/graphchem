@@ -44,4 +44,4 @@ To contribute to GraphChem, make a pull request. Contributions should include te
 
 To report problems with the software or feature requests, file an issue. When reporting problems, include information such as error messages, your OS/environment and Python version.
 
-For additional support/questions, contact Travis Kessler (travis.j.kessler@gmail.com).
+For additional support/questions, contact Travis Kessler (Travis_Kessler@student.uml.edu).
