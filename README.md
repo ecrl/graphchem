@@ -31,7 +31,7 @@ $ python setup.py install
 
 # Usage:
 
-API documentation is coming in the future! In the meantime, take a look at some [examples](https://github.com/tjkessler/graphchem/examples).
+API documentation is coming in the future! In the meantime, take a look at some [examples](https://github.com/tjkessler/GraphChem/tree/master/examples).
 
 # Contributing, Reporting Issues and Other Support:
 
