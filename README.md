@@ -1,8 +1,10 @@
+[![UML Energy & Combustion Research Laboratory](http://faculty.uml.edu/Hunter_Mack/uploads/9/7/1/3/97138798/1481826668_2.png)](http://faculty.uml.edu/Hunter_Mack/)
+
 # GraphChem: Graph-based machine learning for chemical property prediction
 
-[![GitHub version](https://badge.fury.io/gh/tjkessler%2FGraphChem.svg)](https://badge.fury.io/gh/tjkessler%2FGraphChem)
+[![GitHub version](https://badge.fury.io/gh/ecrl%2FGraphChem.svg)](https://badge.fury.io/gh/ecrl%2FGraphChem)
 [![PyPI version](https://badge.fury.io/py/graphchem.svg)](https://badge.fury.io/py/graphchem)
-[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/tjkessler/GraphChem/master/LICENSE.txt)
+[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/ecrl/GraphChem/master/LICENSE.txt)
 
 **GraphChem** is an open source Python package for constructing graph-based machine learning models with a focus on chemical property prediction. 
 
@@ -34,7 +36,7 @@ $ python setup.py install
 
 # Usage:
 
-API documentation is coming in the future! In the meantime, take a look at some [examples](https://github.com/tjkessler/GraphChem/tree/master/examples).
+API documentation is coming in the future! In the meantime, take a look at some [examples](https://github.com/ecrl/GraphChem/tree/master/examples).
 
 # Contributing, Reporting Issues and Other Support:
 
