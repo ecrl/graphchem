@@ -1,15 +1,31 @@
-from setuptools import setup
+from setuptools import find_packages, setup
+try:
+    from rdkit import Chem
+except ImportError as excep:
+    raise Exception('{}\nRDKit not found! Install it manually before installing GraphChem'.format(excep))
 
 setup(
     name='graphchem',
-    version='0.2.0',
-    description='Graph representations of molecules derived from SMILES'
-    ' strings',
-    url='http://github.com/tjkessler/graphchem',
+    version='1.0.0',
+    description='Graph-based machine learning for chemical property prediction',
+    url='https://github.com/tjkessler/graphchem',
     author='Travis Kessler',
-    author_email='travis.j.kessler@gmail.com',
+    author_email='Travis_Kessler@student.uml.edu',
     license='MIT',
-    packages=['graphchem'],
-    install_requires=[],
+    packages=find_packages(),
+    install_requires=[
+        'torch==1.8.0',
+        'pytorch-nlp==0.5.0',
+        'torch-scatter==2.0.6',
+        'torch-sparse==0.6.9',
+        'torch-cluster==1.5.9',
+        'torch-spline-conv==1.2.1',
+        'torch-geometric==1.6.3'
+    ],
+    package_data={
+        'graphchem': [
+            'datasets/static/*'
+        ]
+    },
     zip_safe=False
 )
