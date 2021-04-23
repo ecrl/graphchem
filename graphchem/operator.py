@@ -5,14 +5,12 @@ from sklearn.model_selection import train_test_split
 import warnings
 
 from .preprocessing import CompoundEncoder
-from .models import MessagePassingNet, LRDecayLinear, CallbackOperator,\
-    Validator
+from .models import CompoundGCN, LRDecayLinear, CallbackOperator, Validator
 
 
 def _default_config():
 
     return {
-        'task': 'graph',
         'valid_size': 0.2,
         'valid_epoch_iter': 4,
         'valid_patience': 8,
@@ -100,10 +98,10 @@ class GraphOperator(object):
         )
 
         # Create model
-        self._model = MessagePassingNet(
+        self._model = CompoundGCN(
             self._ce.ATOM_DIM,
+            self._ce.BOND_DIM,
             len(target[0]),
-            task=self._config['task'],
             config=model_config
         )
         self._model.construct()
@@ -147,7 +145,7 @@ class GraphOperator(object):
                     break
 
                 optimizer.zero_grad()
-                embedding, pred = self._model(batch)
+                pred, _, _ = self._model(batch)
                 target = batch.y
                 if self._config['task'] == 'node':
                     pred = pred[batch.train_mask]
@@ -220,7 +218,7 @@ class GraphOperator(object):
         # Get results
         results = []
         for batch in loader_test:
-            _, res = self._model(batch)
+            res, _, _ = self._model(batch)
             results.append(res.detach().numpy()[0])
         return results
 

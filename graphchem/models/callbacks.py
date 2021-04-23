@@ -116,7 +116,7 @@ class Validator(Callback):
             return True
         valid_loss = 0.0
         for batch in self.loader:
-            _, v_pred = self.model(batch)
+            v_pred, _, _ = self.model(batch)
             v_target = batch.y
             v_loss = self.model.loss(v_pred, v_target)
             valid_loss += v_loss * batch.num_graphs
