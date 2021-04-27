@@ -7,8 +7,6 @@ from torch_scatter import scatter_add
 
 import warnings
 
-from .utils import build_conv_layer
-
 
 def _default_config():
 
