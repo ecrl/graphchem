@@ -13,7 +13,13 @@ class CompoundGCN(nn.Module):
                  n_messages: int = 2, n_hidden: int = 1, hidden_dim: int = 32,
                  dropout: float = 0.0):
         """
-        CompoundGCN(torch.nn.Module): TODO: Write out math
+        CompoundGCN(torch.nn.Module): Combines torch_geometric.nn.MFConv and
+        torch_geometric.nn.EdgeConv to perform `n_messages` graph node and
+        graph edge convolutions; on graph readout, node and edge features
+        concatenated, scatter added, global added w.r.t. current batch, passed
+        through fully connected NN
+
+        TODO: Write out math
 
         Args:
             node_dim (int): n_features for node feature vectors

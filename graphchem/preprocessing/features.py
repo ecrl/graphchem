@@ -5,7 +5,16 @@ from rdkit import Chem
 from typing import Tuple
 
 
-def atom_to_string(atom: Chem.Atom) -> str:
+def atom_to_string(atom: 'rdkit.Chem.Atom') -> str:
+    """
+    Tokenize a rdkit.Chem.Atom into a 14-symbol string, delimited with `|`
+
+    Args:
+        atom (rdkit.Chem.Atom): atom to tokenize
+
+    Returns:
+        str: tokenized atom
+    """
 
     return '{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}'.format(
         atom.GetChiralTag(),
@@ -25,7 +34,16 @@ def atom_to_string(atom: Chem.Atom) -> str:
     )
 
 
-def bond_to_string(bond: Chem.Bond) -> str:
+def bond_to_string(bond: 'rdkit.Chem.Bond') -> str:
+    """
+    Tokenize a rdkit.Chem.Bond into a 7-symbol string, delimited with `|`
+
+    Args:
+        bond (rdkit.Chem.Bond): bond to tokenize
+
+    Returns:
+        str: tokenized bond
+    """
 
     return '{}|{}|{}|{}|{}|{}|{}'.format(
         bond.GetBondType(),
