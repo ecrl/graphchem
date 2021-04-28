@@ -1,8 +1,4 @@
 from setuptools import find_packages, setup
-try:
-    from rdkit import Chem
-except ImportError as excep:
-    raise Exception('{}\nRDKit not found! Install it manually before installing GraphChem'.format(excep))
 
 setup(
     name='graphchem',
