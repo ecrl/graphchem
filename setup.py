@@ -4,7 +4,7 @@ setup(
     name='graphchem',
     version='1.0.0',
     description='Graph-based machine learning for chemical property prediction',
-    url='https://github.com/tjkessler/graphchem',
+    url='https://github.com/ecrl/graphchem',
     author='Travis Kessler',
     author_email='Travis_Kessler@student.uml.edu',
     license='MIT',
