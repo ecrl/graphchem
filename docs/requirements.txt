@@ -1,3 +1,2 @@
 mkdocs-material
 mkdocstrings
-torch==1.8.0
