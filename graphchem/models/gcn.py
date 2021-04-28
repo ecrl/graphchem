@@ -37,22 +37,6 @@ class CompoundGCN(nn.Module):
         self.edge_conv = pyg_nn.EdgeConv(nn.Sequential(
             nn.Linear(2 * edge_dim, edge_dim)
         ))
-        # self.node_convs = nn.ModuleList()
-        # self.node_convs.append(pyg_nn.MFConv(node_dim, hidden_msg_dim))
-        # for _ in range(n_messages - 1):
-        #     self.node_convs.append(
-        #         pyg_nn.MFConv(hidden_msg_dim, hidden_msg_dim)
-        #     )
-
-        # Construct message passing layers for edge network
-        # self.edge_convs = nn.ModuleList()
-        # self.edge_convs.append(pyg_nn.EdgeConv(nn.Sequential(
-        #     nn.Linear(2 * edge_dim, hidden_msg_dim)
-        # )))
-        # for _ in range(n_messages - 1):
-        #     self.edge_convs.append(pyg_nn.EdgeConv(nn.Sequential(
-        #         nn.Linear(2 * hidden_msg_dim, hidden_msg_dim)
-        #     )))
 
         # Construct post-message passing layers
         self.post_conv = nn.ModuleList()
@@ -110,10 +94,11 @@ class CompoundGCN(nn.Module):
         out = pyg_nn.global_add_pool(out, batch)
 
         # Perform post-message passing feed forward operations
-        for layer in self.post_conv:
+        for layer in self.post_conv[:-1]:
             out = layer(out)
             out = F.relu(out)
             out = F.dropout(out, p=self._dropout, training=self.training)
+        out = self.post_conv[-1](out)
 
         # Return fed-forward data, node embedding, edge embedding
         return out, emb_node, emb_edge
