@@ -3,7 +3,7 @@ from torchnlp.encoders.text import DelimiterEncoder
 import numpy as np
 from rdkit import Chem
 
-from ..utils import parse_smiles
+from .smiles import parse_smiles
 
 
 def atom_to_string(atom: Chem.Atom) -> str:

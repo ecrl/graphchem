@@ -1,1 +1,1 @@
-from .operator import GraphOperator
+from .operator import CompoundOperator

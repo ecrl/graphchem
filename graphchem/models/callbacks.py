@@ -106,6 +106,7 @@ class Validator(Callback):
         self.loader = loader
         self.model = model
         self._ei = eval_iter
+        self._most_recent_loss = sys.maxsize
         self._best_loss = sys.maxsize
         self._epoch_since_best = 0
         self.best_state = model.state_dict()
@@ -121,6 +122,7 @@ class Validator(Callback):
             v_loss = self.model.loss(v_pred, v_target)
             valid_loss += v_loss * batch.num_graphs
         valid_loss /= len(self.loader.dataset)
+        self._most_recent_loss = valid_loss
         if valid_loss < self._best_loss:
             self._best_loss = valid_loss
             self.best_state = self.model.state_dict()

@@ -4,105 +4,82 @@ import torch.nn.functional as F
 import torch_geometric.nn as pyg_nn
 import torch_geometric.data as gdata
 from torch_scatter import scatter_add
-
-import warnings
-
-
-def _default_config():
-
-    return {
-        'n_messages': 1,
-        'n_hidden': 1,
-        'hidden_msg_dim': 32,
-        'hidden_dim': 32,
-        'dropout': 0.05
-    }
+from typing import Tuple
 
 
 class CompoundGCN(nn.Module):
 
     def __init__(self, node_dim: int, edge_dim: int, output_dim: int,
-                 config: dict = None):
+                 n_messages: int = 2, n_hidden: int = 1, hidden_dim: int = 32,
+                 dropout: float = 0.0):
+        """
+        CompoundGCN(torch.nn.Module): TODO: Write out math
 
-        # Initialize
+        Args:
+            node_dim (int): n_features for node feature vectors
+            edge_dim (int): n_features for edge feature vectors
+            output_dim (int): n_features for target value vectors
+            n_messages (int, optional): number of message-passing ops to
+                perform for nodes and edges, default = 2
+            n_hidden (int, optional): number of sequential, feed-forward
+                layers after graph node/edge readout/scatter mean, default = 1
+            hidden_dim (int, optional): number of neurons in feed-forward
+                readout net's hidden layers, default = 32
+            dropout (float, optional): neuron dropout rate, default = 0.0
+        """
+
         super(CompoundGCN, self).__init__()
-        self._node_dim = node_dim
-        self._edge_dim = edge_dim
-        self._output_dim = output_dim
+        self._dropout = dropout
+        self._n_messages = n_messages
 
-        # Create model config if none supplied
-        if config is None:
-            config = _default_config()
-        # Config supplied, check for variables and variable values
-        else:
-            df = _default_config()
-            for key in df.keys():
-                try:
-                    _val = config[key]
-                except KeyError:
-                    config[key] = df[key]
-                    warnings.warn(
-                        '{} config value not found: default value set, {}'
-                        .format(key, df[key])
-                    )
-            if config['n_messages'] < 1:
-                raise ValueError('config[\'n_messages\') < 1: {}'.format(
-                                 config['n_messages']))
-            elif config['n_hidden'] < 1:
-                raise ValueError('config[\'n_hidden\' < 1: {}'.format(
-                                 config['n_hidden']))
-            elif config['hidden_dim'] < 1:
-                raise ValueError('config[\'hidden_dim\'] < 1: {}'.format(
-                                 config['hidden_dim']))
-            elif config['hidden_msg_dim'] < 1:
-                raise ValueError('config[\'hidden_msg_dim\'] < 1: {}'.format(
-                                 config['hidden_msg_dim']))
-            elif config['dropout'] < 0.0 or config['dropout'] > 1.0:
-                raise ValueError('config[\'dropout\'] invalid: {}'.format(
-                                 config['dropout']))
-        self._config = config
-
-    def construct(self):
-
-        # Construct message passing layers for node network
-        self.node_convs = nn.ModuleList()
-        self.node_convs.append(pyg_nn.MFConv(
-            self._node_dim, self._config['hidden_msg_dim']
+        # Construct message passing layers for node, edge networks
+        self.node_conv = pyg_nn.MFConv(node_dim, node_dim)
+        self.edge_conv = pyg_nn.EdgeConv(nn.Sequential(
+            nn.Linear(2 * edge_dim, edge_dim)
         ))
-        for _ in range(self._config['n_messages'] - 1):
-            self.node_convs.append(pyg_nn.MFConv(
-                self._config['hidden_msg_dim'], self._config['hidden_msg_dim']
-            ))
+        # self.node_convs = nn.ModuleList()
+        # self.node_convs.append(pyg_nn.MFConv(node_dim, hidden_msg_dim))
+        # for _ in range(n_messages - 1):
+        #     self.node_convs.append(
+        #         pyg_nn.MFConv(hidden_msg_dim, hidden_msg_dim)
+        #     )
 
         # Construct message passing layers for edge network
-        self.edge_convs = nn.ModuleList()
-        self.edge_convs.append(pyg_nn.EdgeConv(nn.Sequential(
-            nn.Linear(2 * self._edge_dim, self._config['hidden_msg_dim'])
-        )))
-        for _ in range(self._config['n_messages'] - 1):
-            self.edge_convs.append(pyg_nn.EdgeConv(nn.Sequential(
-                nn.Linear(2 * self._config['hidden_msg_dim'],
-                          self._config['hidden_msg_dim'])
-            )))
+        # self.edge_convs = nn.ModuleList()
+        # self.edge_convs.append(pyg_nn.EdgeConv(nn.Sequential(
+        #     nn.Linear(2 * edge_dim, hidden_msg_dim)
+        # )))
+        # for _ in range(n_messages - 1):
+        #     self.edge_convs.append(pyg_nn.EdgeConv(nn.Sequential(
+        #         nn.Linear(2 * hidden_msg_dim, hidden_msg_dim)
+        #     )))
 
         # Construct post-message passing layers
         self.post_conv = nn.ModuleList()
         self.post_conv.append(nn.Sequential(
-            nn.Linear(2 * self._config['hidden_msg_dim'],
-                      self._config['hidden_dim']),
-            nn.Dropout(self._config['dropout'])
+            nn.Linear(2 * node_dim, hidden_dim)
         ))
-        for _ in range(self._config['n_hidden'] - 1):
+        for _ in range(n_hidden - 1):
             self.post_conv.append(nn.Sequential(
-                nn.Linear(self._config['hidden_dim'],
-                          self._config['hidden_dim']),
-                nn.Dropout(self._config['dropout'])
+                nn.Linear(hidden_dim, hidden_dim)
             ))
         self.post_conv.append(nn.Sequential(
-            nn.Linear(self._config['hidden_dim'], self._output_dim)
+            nn.Linear(hidden_dim, output_dim)
         ))
 
-    def forward(self, data: gdata.Data) -> tuple:
+    def forward(self, data: 'torch_geometric.data.Data') -> Tuple[
+     'torch.tensor', 'torch.tensor', 'torch.tensor']:
+        """
+        torch.nn.module forward operation
+
+        Args:
+            data (torch_geometric.data.Data): data to be fed forward; must have
+                node attributes, edge attributes, edge index defined
+
+        Returns:
+            Tuple[torch.tensor, torch.tensor, torch.tensor]: (GCN output, node
+                embeddings, edge embeddings)
+        """
 
         # Get batch
         x, edge_attr, edge_index, batch = data.x, data.edge_attr,\
@@ -111,19 +88,16 @@ class CompoundGCN(nn.Module):
         if data.num_node_features == 0:
             x = torch.ones(data.num_nodes, 1)
 
-        # Feed forward, nodes
-        for i in range(len(self.node_convs)):
-            x = self.node_convs[i](x, edge_index)
+        # Feed forward, node and edge messages
+        for i in range(self._n_messages):
+            x = self.node_conv(x, edge_index)
             emb_node = x
             x = F.relu(x)
-            x = F.dropout(x, p=self._config['dropout'], training=self.training)
-
-        # Feed forward, edges
-        for i in range(len(self.edge_convs)):
-            edge_attr = self.edge_convs[i](edge_attr, edge_index)
+            x = F.dropout(x, p=self._dropout, training=self.training)
+            edge_attr = self.edge_conv(edge_attr, edge_index)
             emb_edge = edge_attr
             edge_attr = F.relu(edge_attr)
-            edge_attr = F.dropout(edge_attr, p=self._config['dropout'],
+            edge_attr = F.dropout(edge_attr, p=self._dropout,
                                   training=self.training)
 
         # Concatenate node network and edge network output tensors
@@ -138,11 +112,24 @@ class CompoundGCN(nn.Module):
         # Perform post-message passing feed forward operations
         for layer in self.post_conv:
             out = layer(out)
+            out = F.relu(out)
+            out = F.dropout(out, p=self._dropout, training=self.training)
 
         # Return fed-forward data, node embedding, edge embedding
         return out, emb_node, emb_edge
 
-    def loss(self, pred: torch.tensor, target: torch.tensor) -> torch.tensor:
+    def loss(self, pred: 'torch.tensor',
+             target: 'torch.tensor') -> 'torch.tensor':
+        """
+        Computes MSE loss between two tensors of equal size
+
+        Args:
+            pred (torch.tensor): predicted values shape (n_samples, n_targets)
+            target (torch.tensor): target values shape (n_samples, n_targets)
+
+        Returns:
+            torch.tensor: element-wise loss shape (n_samples, n_targets)
+        """
 
         if len(target.shape) == 1:
             target = torch.reshape(target, (len(target), 1))
