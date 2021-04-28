@@ -1,3 +1,3 @@
 # graphchem.preprocessing
 
-::: graphchem.preprocessing
+::: graphchem.preprocessing.CompoundEncoder

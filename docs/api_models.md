@@ -1,3 +1,3 @@
 # graphchem.models
 
-::: graphchem.models
+::: graphchem.models.CompoundGCN

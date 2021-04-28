@@ -18,14 +18,11 @@ Future plans for GraphChem include:
 ### Prerequisites:
 - Have Python 3.5+ installed
 - Have [RDKit](https://www.rdkit.org/docs/Install.html) installed (using Conda environments is highly recommended)
-- Have [PyTorch](https://pytorch.org/get-started/locally/) installed
 
 ### Method 1: pip
 ```
 $ pip install graphchem
 ```
-
-If any errors occur when installing dependencies, namely with PyTorch and torch-geometric, visit their installation pages and follow the installation instructions: [PyTorch](https://pytorch.org/get-started/locally/), [PyTorch Geometric](https://pytorch-geometric.readthedocs.io/en/latest/notes/installation.html)
 
 ### Method 2: From Source
 ```
@@ -33,6 +30,8 @@ $ git clone https://github.com/ecrl/graphchem
 $ cd graphchem
 $ python setup.py install
 ```
+
+If any errors occur when installing dependencies, namely with PyTorch or torch-geometric, visit their installation pages and follow the installation instructions: [PyTorch](https://pytorch.org/get-started/locally/), [PyTorch Geometric](https://pytorch-geometric.readthedocs.io/en/latest/notes/installation.html)
 
 # Usage:
 
