@@ -1,3 +1,3 @@
 # graphchem.operator
 
-::: graphchem.operator
+::: graphchem
