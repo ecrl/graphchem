@@ -50,7 +50,6 @@ class CompoundOperator(object):
             architecture:
                 {
                     'n_messages': 1,
-                    'hidden_msg_dim': 32,
                     'n_hidden': 1,
                     'hidden_dim': 32,
                     'dropout': 0.00
@@ -90,10 +89,10 @@ class CompoundOperator(object):
         self._ce = CompoundEncoder(smiles)
         data = []
         for idx, smi in enumerate(smiles):
-            a, b = self._ce.encode(smi)
+            a, b, c = self._ce.encode(smi)
             data.append(gdata.Data(
                 x=a,
-                edge_index=self._ce.connectivity(smi),
+                edge_index=c,
                 edge_attr=b,
                 y=torch.tensor(target[idx]).type(torch.float)
             ).to(self._device))
@@ -240,10 +239,10 @@ class CompoundOperator(object):
         # Prepare data
         data = []
         for idx, smi in enumerate(smiles):
-            a, b = self._ce.encode(smi)
+            a, b, c = self._ce.encode(smi)
             data.append(gdata.Data(
                 x=a,
-                edge_index=self._ce.connectivity(smi),
+                edge_index=c,
                 edge_attr=b
             ).to(self._device))
         loader_test = gdata.DataLoader(
