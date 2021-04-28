@@ -10,7 +10,6 @@ setup(
     license='MIT',
     packages=find_packages(),
     install_requires=[
-        'torch==1.8.0',
         'pytorch-nlp==0.5.0',
         'torch-scatter==2.0.6',
         'torch-sparse==0.6.9',
