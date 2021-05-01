@@ -36,6 +36,7 @@ class CompoundOperator(object):
               valid_epoch_iter: int = 1, valid_patience: int = 16,
               batch_size: int = 1, lr: float = 0.001, lr_decay: float = 0.0,
               epochs: int = 128, verbose: int = 0, random_state: int = None,
+              shuffle: bool = False,
               **kwargs) -> Tuple[List[float], List[float]]:
         """
         Trains a CompoundCGN using supplied SMILES strings, target values
@@ -71,6 +72,8 @@ class CompoundOperator(object):
                 console every `this` epochs, default = 0 (no printing)
             random_state (int, optional): if not `None`, seeds validation
                 subset randomized selection with this value
+            shuffle (bool, optional): if True, shuffles training and validation
+                subsets between training epochs, default = False
             **kwargs: additional arguments passed to torch.optim.Adam
 
         Returns:
@@ -94,7 +97,8 @@ class CompoundOperator(object):
                 x=a,
                 edge_index=c,
                 edge_attr=b,
-                y=torch.tensor(target[idx]).type(torch.float)
+                y=torch.tensor(target[idx]).type(torch.float).reshape(
+                    1, len(target[idx]))
             ).to(self._device))
 
         # Split data into training, validation subsets
@@ -157,6 +161,21 @@ class CompoundOperator(object):
             # EPOCH BEGIN
             if not CBO.on_epoch_begin(epoch):
                 break
+
+            if shuffle:
+                data_train, data_valid = train_test_split(
+                    data, test_size=valid_size, random_state=random_state
+                )
+                loader_train = gdata.DataLoader(
+                    data_train,
+                    batch_size=batch_size,
+                    shuffle=True
+                )
+                loader_valid = gdata.DataLoader(
+                    data_valid,
+                    batch_size=batch_size,
+                    shuffle=True
+                )
 
             train_loss = 0.0
             self._model.train()
