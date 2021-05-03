@@ -1,3 +1,0 @@
-# graphchem.datasets
-
-::: graphchem.datasets
