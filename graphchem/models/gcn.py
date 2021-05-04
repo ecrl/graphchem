@@ -38,11 +38,14 @@ class CompoundGCN(nn.Module):
         self._dropout = dropout
         self._n_messages = n_messages
 
+        self.lin0 = nn.Linear(node_dim, node_dim)
+
         # Construct message passing layers for node, edge networks
         self.node_conv = pyg_nn.MFConv(node_dim, node_dim)
         self.edge_conv = pyg_nn.EdgeConv(nn.Sequential(
             nn.Linear(2 * edge_dim, edge_dim)
         ))
+        self.node_gru = nn.GRU(node_dim, node_dim)
 
         # Construct post-message passing layers
         self.post_conv = nn.ModuleList()
@@ -78,12 +81,16 @@ class CompoundGCN(nn.Module):
         if data.num_node_features == 0:
             x = torch.ones(data.num_nodes, 1)
 
+        out = F.relu(self.lin0(x))
+        h = out.unsqueeze(0)
+
         # Feed forward, node and edge messages
         for i in range(self._n_messages):
-            x = self.node_conv(x, edge_index)
-            emb_node = x
-            x = F.relu(x)
-            x = F.dropout(x, p=self._dropout, training=self.training)
+            m = F.relu(self.node_conv(out, edge_index))
+            emb_node = m
+            m = F.dropout(m, p=self._dropout, training=self.training)
+            out, h = self.node_gru(m.unsqueeze(0), h)
+            out = out.squeeze(0)
             edge_attr = self.edge_conv(edge_attr, edge_index)
             emb_edge = edge_attr
             edge_attr = F.relu(edge_attr)
@@ -91,7 +98,7 @@ class CompoundGCN(nn.Module):
                                   training=self.training)
 
         # Concatenate node network and edge network output tensors
-        out = torch.cat([x[row], edge_attr[col]], dim=1)
+        out = torch.cat([out[row], edge_attr[col]], dim=1)
 
         # Perform scatter add, reshape to original node dimensionality
         out = scatter_add(out, col, dim=0, dim_size=x.size(0))
