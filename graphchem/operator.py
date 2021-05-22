@@ -1,69 +1,85 @@
 import torch
 import torch_geometric.data as gdata
 from sklearn.model_selection import train_test_split
-
-import warnings
+from typing import List, Tuple
+from re import compile
 
 from .preprocessing import CompoundEncoder
-from .models import MessagePassingNet, LRDecayLinear, CallbackOperator,\
-    Validator
+from .models import CompoundGCN, LRDecayLinear, CallbackOperator, Validator
+
+_PT_RE = compile(r'^.*\.pt$')
+_ENC_RE = compile(r'^.*\.enc$')
 
 
-def _default_config():
+class CompoundOperator(object):
 
-    return {
-        'task': 'graph',
-        'valid_size': 0.2,
-        'valid_epoch_iter': 4,
-        'valid_patience': 8,
-        'batch_size': 1,
-        'learning_rate': 0.001,
-        'lr_decay': 0.0,
-        'epochs': 32,
-        'verbose': 0,
-        'device': torch.device(
-            'cuda:0' if torch.cuda.is_available() else 'cpu'
-        )
-    }
+    def __init__(self, device: str = None):
+        """
+        CompoundOperator(object): handles data pre-processing, model training,
+        model saving/recall, using a model on new data
 
+        Args:
+            device (str, optional): torch.device to run ops on, defaults to
+                `cuda:0` if available else `cpu`
+        """
 
-class GraphOperator(object):
-
-    def __init__(self, config: dict = None):
-
-        if config is None:
-            config = _default_config()
+        if device is None:
+            self._device = torch.device('cuda:0' if torch.cuda.is_available()
+                                        else 'cpu')
         else:
-            df = _default_config()
-            for key in df.keys():
-                try:
-                    _val = config[key]
-                except KeyError:
-                    config[key] = df[key]
-                    warnings.warn(
-                        '{} config value not found: default value set, {}'
-                        .format(key, df[key])
-                    )
-        self._config = config
+            self._device = device
         self._model = None
         self._ce = None
 
-    def train(self, smiles: list, target: list, model_filename: str = None,
-              model_config: dict = None):
-        ''' GraphOperator.train: trains a graph neural network given SMILES
-        strings, target values, supplied config (i.e. architecture, hyper-
-        parameters)
+    def train(self, smiles: List[str], target: List[List[float]],
+              model_config: dict = None, valid_size: float = 0.2,
+              valid_epoch_iter: int = 1, valid_patience: int = 16,
+              batch_size: int = 1, lr: float = 0.001, lr_decay: float = 0.0,
+              epochs: int = 128, verbose: int = 0, random_state: int = None,
+              shuffle: bool = False,
+              **kwargs) -> Tuple[List[float], List[float]]:
+        """
+        Trains a CompoundCGN using supplied SMILES strings, target values
 
         Args:
-            smiles (list): list of SMILES strings (str)
-            target (list): list of target values (1d, float)
-            model_filename (str): if not None, saves model to this location
-            model_config (dict): configuration dict; if none supplied, default
-                is used
+            smiles (list[str]): list of SMILES strings, one per compound
+            target (list[list[float]]): list of target values, shape
+                [n_samples, n_targets], one per compound
+            model_filename (str, optional): if not `None`, saves the trained
+                model to this filename/path
+            model_config (dict, optional): if not supplied, uses default model
+            architecture:
+                {
+                    'n_messages': 1,
+                    'n_hidden': 1,
+                    'hidden_dim': 32,
+                    'dropout': 0.00
+                }
+            valid_size (float, optional): proportion of training set used for
+                periodic validation, default = 0.2
+            valid_epoch_iter (int, optional): validation set performance is
+                measured every `this` epochs, default = 1 epochs
+            valid_patience (int, optional): if lower validation set loss not
+                encountered after `this` many epochs, terminate to avoid
+                overfitting, default = 16
+            batch_size (int, optional): size of each batch during training,
+                default = 1
+            lr (float, optional): learning rate for Adam opt, default = 0.001
+            lr_decay (float, optional): linear rate of decay of learning rate
+                per epoch, default = 0.0
+            epochs (int, optional): number of training epochs, default = 128
+            verbose (int, optional): training and validation loss printed to
+                console every `this` epochs, default = 0 (no printing)
+            random_state (int, optional): if not `None`, seeds validation
+                subset randomized selection with this value
+            shuffle (bool, optional): if True, shuffles training and validation
+                subsets between training epochs, default = False
+            **kwargs: additional arguments passed to torch.optim.Adam
 
         Returns:
-            None
-        '''
+            tuple[list[float], list[float]]: (training losses, validation
+                losses) over all training epochs
+        """
 
         # Check for inequality in length of input, target data
         if len(smiles) != len(target):
@@ -76,66 +92,90 @@ class GraphOperator(object):
         self._ce = CompoundEncoder(smiles)
         data = []
         for idx, smi in enumerate(smiles):
-            a, b = self._ce.encode(smi)
+            a, b, c = self._ce.encode(smi)
             data.append(gdata.Data(
                 x=a,
-                edge_index=self._ce.connectivity(smi),
+                edge_index=c,
                 edge_attr=b,
-                y=torch.tensor(target[idx]).type(torch.float)
-            ).to(self._config['device']))
+                y=torch.tensor(target[idx]).type(torch.float).reshape(
+                    1, len(target[idx]))
+            ).to(self._device))
 
         # Split data into training, validation subsets
         data_train, data_valid = train_test_split(
-            data, test_size=self._config['valid_size']
+            data, test_size=valid_size, random_state=random_state
         )
         loader_train = gdata.DataLoader(
             data_train,
-            batch_size=self._config['batch_size'],
+            batch_size=batch_size,
             shuffle=True
         )
         loader_valid = gdata.DataLoader(
             data_valid,
-            batch_size=self._config['batch_size'],
+            batch_size=batch_size,
             shuffle=True
         )
 
         # Create model
-        self._model = MessagePassingNet(
-            self._ce.ATOM_DIM,
-            len(target[0]),
-            task=self._config['task'],
-            config=model_config
-        )
-        self._model.construct()
-        self._model.to(self._config['device'])
-        optimizer = torch.optim.Adam(self._model.parameters(),
-                                     lr=self._config['learning_rate'])
+        if model_config is None:
+            self._model = CompoundGCN(
+                self._ce.ATOM_DIM,
+                self._ce.BOND_DIM,
+                len(target[0])
+            )
+        else:
+            self._model = CompoundGCN(
+                self._ce.ATOM_DIM,
+                self._ce.BOND_DIM,
+                len(target[0]),
+                model_config['n_messages'],
+                model_config['n_hidden'],
+                model_config['hidden_dim'],
+                model_config['dropout']
+            )
+        self._model.to(self._device)
+        optimizer = torch.optim.Adam(self._model.parameters(), lr=lr, **kwargs)
 
         # Setup callbacks
         CBO = CallbackOperator()
-        _lrdecay = LRDecayLinear(
-            self._config['learning_rate'],
-            self._config['lr_decay'],
-            optimizer
-        )
+        _lrdecay = LRDecayLinear(lr, lr_decay, optimizer)
         _validator = Validator(
             loader_valid,
             self._model,
-            self._config['valid_epoch_iter'],
-            self._config['valid_patience']
+            valid_epoch_iter,
+            valid_patience
         )
         CBO.add_cb(_lrdecay)
         CBO.add_cb(_validator)
+
+        # Record loss for return
+        train_losses = []
+        valid_losses = []
 
         # TRAIN BEGIN
         CBO.on_train_begin()
 
         # Begin training loop
-        for epoch in range(self._config['epochs']):
+        for epoch in range(epochs):
 
             # EPOCH BEGIN
             if not CBO.on_epoch_begin(epoch):
                 break
+
+            if shuffle:
+                data_train, data_valid = train_test_split(
+                    data, test_size=valid_size, random_state=random_state
+                )
+                loader_train = gdata.DataLoader(
+                    data_train,
+                    batch_size=batch_size,
+                    shuffle=True
+                )
+                loader_valid = gdata.DataLoader(
+                    data_valid,
+                    batch_size=batch_size,
+                    shuffle=True
+                )
 
             train_loss = 0.0
             self._model.train()
@@ -147,11 +187,8 @@ class GraphOperator(object):
                     break
 
                 optimizer.zero_grad()
-                embedding, pred = self._model(batch)
+                pred, _, _ = self._model(batch)
                 target = batch.y
-                if self._config['task'] == 'node':
-                    pred = pred[batch.train_mask]
-                    target = target[batch.train_mask]
 
                 # BATCH END, LOSS BEGIN
                 if not CBO.on_batch_end(b_idx):
@@ -181,17 +218,33 @@ class GraphOperator(object):
             if not CBO.on_epoch_end(epoch):
                 break
 
-            if self._config['verbose']:
-                print('Epoch: {} | Train Loss: {} | Valid Loss: {}'.format(
-                      epoch, train_loss, _validator._best_loss))
+            if verbose > 0:
+                if epoch % verbose == 0:
+                    print('Epoch: {} | Train Loss: {} | Valid Loss: {}'.format(
+                          epoch, train_loss, _validator._most_recent_loss))
+
+            train_losses.append(train_loss)
+            valid_losses.append(_validator._most_recent_loss.detach().item())
 
         # TRAIN END
         CBO.on_train_end()
 
-        if model_filename is not None:
-            torch.save(self._model, model_filename)
+        return (train_losses, valid_losses)
 
-    def use(self, smiles: list, model_filename=None) -> list:
+    def use(self, smiles: List[str],
+            model_filename: str = None) -> List[List[float]]:
+        """
+        Uses a pre-trained CompoundGCN, either trained in-session or recalled
+        from a file, for use on new data
+
+        Args:
+            smiles (list[str]): SMILES strings to predict for
+            model_filename (str, optional): filename/path of model to load,
+                default = None (model trained in-session used)
+
+        Returns:
+            list[list[float]]: predicted values of shape [n_samples, n_targets]
+        """
 
         # Figure out what to use
         if self._model is None and model_filename is None:
@@ -205,12 +258,12 @@ class GraphOperator(object):
         # Prepare data
         data = []
         for idx, smi in enumerate(smiles):
-            a, b = self._ce.encode(smi)
+            a, b, c = self._ce.encode(smi)
             data.append(gdata.Data(
                 x=a,
-                edge_index=self._ce.connectivity(smi),
+                edge_index=c,
                 edge_attr=b
-            ).to(self._config['device']))
+            ).to(self._device))
         loader_test = gdata.DataLoader(
             data,
             batch_size=1,
@@ -220,15 +273,42 @@ class GraphOperator(object):
         # Get results
         results = []
         for batch in loader_test:
-            _, res = self._model(batch)
-            results.append(res.detach().numpy()[0])
+            res, _, _ = self._model(batch)
+            results.append(res.detach().numpy().tolist()[0])
         return results
 
-    def save_model(self, model_filename):
+    def save_model(self, model_filename: str, encoder_filename: str):
+        """
+        Saves model, and the necessary encoder, to two files for later use
+
+        Args:
+            model_filename (str): filename/path to save model, `.pt` extension
+            encoder_filename (str): filename/path to save encoder, `.enc`
+                extension
+        """
+
+        if _PT_RE.match(model_filename) is None:
+            raise ValueError('model_filename must have `.pt` extension')
+        if _ENC_RE.match(encoder_filename) is None:
+            raise ValueError(('encoder_filename must have a `.enc` extension'))
 
         torch.save(self._model, model_filename)
+        torch.save(self._ce, model_filename.replace('.pt', '.enc'))
 
-    def load_model(self, model_filename):
+    def load_model(self, model_filename: str, encoder_filename: str):
+        """
+        Loads a pre-trained CompoundGCN and its encoder for use in-session
+
+        Args:
+            model_filename (str): filename/path of pre-trained model, `.pt`
+                extension
+            encoder_filename (str): filename/path of model's encoder, `.enc`
+                extension
+        """
+
+        if _PT_RE.match(model_filename) is None:
+            raise ValueError('model_filename must have `.pt` extension')
 
         self._model = torch.load(model_filename)
         self._model.eval()
+        self._ce = torch.load(model_filename.replace('.pt', '.enc'))

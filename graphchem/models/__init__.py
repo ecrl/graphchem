@@ -1,3 +1,2 @@
-from .mp import MessagePassingNet
-from .utils import *
+from .gcn import CompoundGCN
 from .callbacks import *

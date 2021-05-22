@@ -1,16 +1,15 @@
 [![UML Energy & Combustion Research Laboratory](http://faculty.uml.edu/Hunter_Mack/uploads/9/7/1/3/97138798/1481826668_2.png)](http://faculty.uml.edu/Hunter_Mack/)
 
-# GraphChem: Graph-based machine learning for chemical property prediction
+# GraphChem: Graph-based machine learning for fuel property prediction
 
 [![GitHub version](https://badge.fury.io/gh/ecrl%2FGraphChem.svg)](https://badge.fury.io/gh/ecrl%2FGraphChem)
 [![PyPI version](https://badge.fury.io/py/graphchem.svg)](https://badge.fury.io/py/graphchem)
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/ecrl/GraphChem/master/LICENSE.txt)
 
-**GraphChem** is an open source Python package for constructing graph-based machine learning models with a focus on chemical property prediction. 
+**GraphChem** is an open source Python package for constructing graph-based machine learning models with a focus on fuel property prediction. 
 
 Future plans for GraphChem include:
-- Full API documentation, in-code documentation
-- A robust hyper-parameter and model architecture tuning runtime
+- Robust hyper-parameter and model architecture tuning runtimes
 - Molecule visualization via RDKit
 - Extensive automated testing
 
@@ -25,14 +24,14 @@ Future plans for GraphChem include:
 $ pip install graphchem
 ```
 
-If any installation issues occur with PyTorch or torch-dependent packages (notably torch-geometric), visit their installation pages and follow the installation instructions: [PyTorch](https://pytorch.org/get-started/locally/), [PyTorch Geometric](https://pytorch-geometric.readthedocs.io/en/latest/notes/installation.html)
-
 ### Method 2: From Source
 ```
 $ git clone https://github.com/ecrl/graphchem
 $ cd graphchem
 $ python setup.py install
 ```
+
+If any errors occur when installing dependencies, namely with PyTorch or torch-geometric, visit their installation pages and follow the installation instructions: [PyTorch](https://pytorch.org/get-started/locally/), [PyTorch Geometric](https://pytorch-geometric.readthedocs.io/en/latest/notes/installation.html)
 
 # Usage:
 
