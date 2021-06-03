@@ -136,9 +136,15 @@ class CompoundEncoder(object):
         connectivity = np.zeros((2, 2 * mol.GetNumBonds()))
         bond_index = 0
         for atom in mol.GetAtoms():
+            start_index = atom.GetIdx()
             for bond in atom.GetBonds():
-                connectivity[0, bond_index] = bond.GetBeginAtomIdx()
-                connectivity[1, bond_index] = bond.GetEndAtomIdx()
+                rev = bond.GetBeginAtomIdx() != start_index
+                if not rev:
+                    connectivity[0, bond_index] = bond.GetBeginAtomIdx()
+                    connectivity[1, bond_index] = bond.GetEndAtomIdx()
+                else:
+                    connectivity[0, bond_index] = bond.GetEndAtomIdx()
+                    connectivity[1, bond_index] = bond.GetBeginAtomIdx()
                 bond_index += 1
         connectivity = torch.from_numpy(connectivity).type(torch.long)
 
