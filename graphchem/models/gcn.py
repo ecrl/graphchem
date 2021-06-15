@@ -39,6 +39,7 @@ class CompoundGCN(nn.Module):
         self._n_messages = n_messages
 
         self.lin0 = nn.Linear(node_dim, node_dim)
+        self.lin0_edge = nn.Linear(edge_dim, edge_dim)
 
         # Construct message passing layers for node, edge networks
         self.node_conv = pyg_nn.MFConv(node_dim, node_dim)
@@ -46,6 +47,7 @@ class CompoundGCN(nn.Module):
             nn.Linear(2 * edge_dim, edge_dim)
         ))
         self.node_gru = nn.GRU(node_dim, node_dim)
+        self.edge_gru = nn.GRU(edge_dim, edge_dim)
 
         # Construct post-message passing layers
         self.post_conv = nn.ModuleList()
@@ -82,7 +84,9 @@ class CompoundGCN(nn.Module):
             x = torch.ones(data.num_nodes, 1)
 
         out = F.relu(self.lin0(x))
+        out_edge = F.relu(self.lin0_edge(edge_attr))
         h = out.unsqueeze(0)
+        h_edge = out_edge.unsqueeze(0)
 
         # Feed forward, node and edge messages
         for i in range(self._n_messages):
@@ -91,14 +95,15 @@ class CompoundGCN(nn.Module):
             m = F.dropout(m, p=self._dropout, training=self.training)
             out, h = self.node_gru(m.unsqueeze(0), h)
             out = out.squeeze(0)
-            edge_attr = self.edge_conv(edge_attr, edge_index)
-            emb_edge = edge_attr
-            edge_attr = F.relu(edge_attr)
-            edge_attr = F.dropout(edge_attr, p=self._dropout,
-                                  training=self.training)
+
+            m_edge = F.relu(self.edge_conv(out_edge, edge_index))
+            emb_edge = m_edge
+            m_edge = F.dropout(m_edge, p=self._dropout, training=self.training)
+            out_edge, h_edge = self.edge_gru(m_edge.unsqueeze(0), h_edge)
+            out_edge = out_edge.squeeze(0)
 
         # Concatenate node network and edge network output tensors
-        out = torch.cat([out[row], edge_attr[col]], dim=1)
+        out = torch.cat([out[row], out_edge[col]], dim=1)
 
         # Perform scatter add, reshape to original node dimensionality
         out = scatter_add(out, col, dim=0, dim_size=x.size(0))
