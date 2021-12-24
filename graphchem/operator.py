@@ -274,7 +274,7 @@ class CompoundOperator(object):
         results = []
         for batch in loader_test:
             res, _, _ = self._model(batch)
-            results.append(res.detach().numpy().tolist()[0])
+            results.append(res.detach().cpu().numpy().tolist()[0])
         return results
 
     def save_model(self, model_filename: str, encoder_filename: str):
