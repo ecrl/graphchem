@@ -81,10 +81,10 @@ def bond_to_str(bond: 'rdkit.Chem.Bond') -> str:
     return s
 
 
-class CompoundEncoder(object):
+class MoleculeEncoder(object):
 
     def __init__(self, smiles: List[str]):
-        """ CompoundEncoder object: given a list of SMILES strings, construct/
+        """ MoleculeEncoder object: given a list of SMILES strings, construct/
         train delimiter encoders to extract atom features, bond features, and
         molecule connectivity
 
