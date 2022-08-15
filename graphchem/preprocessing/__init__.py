@@ -1,1 +1,1 @@
-from .features import CompoundEncoder, atom_to_string, bond_to_string
+from .features import CompoundEncoder, atom_to_str, bond_to_str

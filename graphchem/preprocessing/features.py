@@ -1,145 +1,150 @@
+from typing import List, Tuple, Union
+
+import rdkit
+from rdkit.Chem import MolFromSmiles
+import numpy as np
 import torch
 from torchnlp.encoders.text import DelimiterEncoder
-import numpy as np
-from rdkit import Chem
-from typing import Tuple
 
 
-def atom_to_string(atom: 'rdkit.Chem.Atom') -> str:
+def get_ring_size(obj: Union['rdkit.Chem.Atom', 'rdkit.Chem.Bond'],
+                  max_size: int = 12):
+    """ determine whether rdkit.Chem.Atom or rdkit.Chem.Bond is in a ring, and
+    of which size
+
+    Args:
+        obj (Union[rdkit.Chem.Atom, rdkit.Chem.Bond]): atom or bond
+        max_size (int, default=12): maximum ring size to consider
     """
-    Tokenize a rdkit.Chem.Atom into a 14-symbol string, delimited with `|`
+
+    if not obj.IsInRing():
+        return 0
+    for i in range(max_size):
+        if obj.IsInRingSize(i):
+            return i
+    return max_size + 1
+
+
+def atom_to_str(atom: 'rdkit.Chem.Atom') -> str:
+    """ prepare to tokenize an atom's attributes by constructing a delimited
+    string; downstream delimiter encoder assumed to handle "|" separator
 
     Args:
         atom (rdkit.Chem.Atom): atom to tokenize
 
     Returns:
-        str: tokenized atom
+        str: atom properties, delimited by "|"
     """
 
-    return '{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}'.format(
-        atom.GetChiralTag(),
-        atom.GetDegree(),
-        atom.GetExplicitValence(),
-        atom.GetFormalCharge(),
-        atom.GetHybridization(),
-        atom.GetIsAromatic(),
-        atom.GetMass(),
-        atom.GetNumExplicitHs(),
-        atom.GetNumImplicitHs(),
-        atom.GetNumRadicalElectrons(),
-        atom.GetTotalDegree(),
-        atom.GetTotalNumHs(),
-        atom.GetTotalValence(),
-        atom.IsInRing()
-    )
+    props = [
+        'GetChiralTag',
+        'GetDegree',
+        'GetExplicitValence',
+        'GetFormalCharge',
+        'GetHybridization',
+        'GetImplicitValence',
+        'GetIsAromatic',
+        'GetNoImplicit',
+        'GetNumExplicitHs',
+        'GetNumImplicitHs',
+        'GetNumRadicalElectrons',
+        'GetSymbol',
+        'GetTotalDegree',
+        'GetTotalNumHs',
+        'GetTotalValence'
+    ]
+    s = '|'.join([str(getattr(atom, p)()) for p in props])
+    s += f'|{get_ring_size(atom)}'
+    return s
 
 
-def bond_to_string(bond: 'rdkit.Chem.Bond') -> str:
-    """
-    Tokenize a rdkit.Chem.Bond into a 7-symbol string, delimited with `|`
+def bond_to_str(bond: 'rdkit.Chem.Bond') -> str:
+    """ prepare to tokenize a bond's attributes by constructing a delimited
+    string; downstream delimiter encoder assumed to handle "|" separator
 
     Args:
         bond (rdkit.Chem.Bond): bond to tokenize
 
     Returns:
-        str: tokenized bond
+        str: bond properties, delimited by "|"
     """
 
-    return '{}|{}|{}|{}|{}|{}|{}'.format(
-        bond.GetBondType(),
-        bond.GetIsAromatic(),
-        bond.GetIsConjugated(),
-        bond.GetStereo(),
-        bond.IsInRing(),
-        bond.GetBeginAtom().GetSymbol(),
-        bond.GetEndAtom().GetSymbol()
-    )
+    props = [
+        'GetBondType',
+        'GetIsConjugated',
+        'GetStereo'
+    ]
+    s = '|'.join([str(getattr(bond, p)()) for p in props])
+    s += f'|{bond.GetBeginAtom().GetSymbol()}'
+    s += f'|{bond.GetEndAtom().GetSymbol()}'
+    s += f'|{get_ring_size(bond)}'
+    return s
 
 
 class CompoundEncoder(object):
 
-    def __init__(self, smiles: list):
-        """
-        CompoundEncoder(object): given a list of SMILES strings, tokenizes and
-        encodes all atoms and bonds for all SMILES strings, calculate
-        connectivity
+    def __init__(self, smiles: List[str]):
+        """ CompoundEncoder object: given a list of SMILES strings, construct/
+        train delimiter encoders to extract atom features, bond features, and
+        molecule connectivity
 
-        Utilizes RDKit for atom and bond feature calculation (e.g. atom mass,
-        bond degree), and torchnlp.encoders.text.DelimiterEncoder for encoding/
-        vectorizing SMILES strings
-
-        n_features per atom and bond will be, at a minimum, 32; higher
-        n_features is possible given large variance in the supplied SMILES
-        strings, or just a lot of SMILES strings
+        Args:
+            smiles (List[str]): SMILES strings to consider for encoder
+                construction
         """
 
-        mols = [Chem.MolFromSmiles(smi) for smi in smiles]
-        for idx, m in enumerate(mols):
-            if m is None:
-                raise ValueError('Unable to parse SMILES: {}'.format(
-                    smiles[idx]
-                ))
+        mols = [MolFromSmiles(smi) for smi in smiles]
+        for idx, mol in enumerate(mols):
+            if mol is None:
+                raise ValueError(f'Unable to parse SMILES: {smiles[idx]}')
+
         atoms = np.concatenate([mol.GetAtoms() for mol in mols])
-        atom_reprs = [atom_to_string(a) for a in atoms]
+        atom_reprs = [atom_to_str(atom) for atom in atoms]
         bond_reprs = np.concatenate(
-            [[bond_to_string(b) for b in a.GetBonds()] for a in atoms]
+            [[bond_to_str(bond) for bond in atom.GetBonds()] for atom in atoms]
         )
+
         self._atom_encoder = DelimiterEncoder('|', atom_reprs)
         self._bond_encoder = DelimiterEncoder('|', bond_reprs)
-        self.ATOM_DIM = max(32, len(self._atom_encoder.encode(atom_reprs[0])))
-        self.BOND_DIM = max(32, len(self._bond_encoder.encode(bond_reprs[0])))
+        self._atom_dim = len(self._atom_encoder.encode(atom_reprs[0]))
+        self._bond_dim = len(self._bond_encoder.encode(bond_reprs[0]))
 
     def encode(self, smiles: str) -> Tuple['torch.tensor', 'torch.tensor',
                                            'torch.tensor']:
-        """
-        Given the SMILES strings used to initialize CompoundEncoder and
-        subsequently used to train atom and bond encoders, encode another
-        SMILES string with these encoders
+        """ encode a molecule using its SMILES string
 
         Args:
-            smiles (str): SMILES string to encode
+            smiles (str): molecule's SMILES string
 
         Returns:
-            Tuple[torch.tensor, torch.tensor, torch.tensor]: encoded atoms of
-                shape (n_atoms, n_atom_features), encoded bonds of shape
-                (n_bonds, n_bond_features), connectivity of shape (2, n_bonds)
-                i.e. COO graph connectivity format
+            Tuple[torch.tensor, torch.tensor, torch.tensor]: (encoded atom
+            features, encoded bond features, molecule connectivity matrix)
         """
 
-        # Generate mol. with RDKit, get atoms
-        mol = Chem.MolFromSmiles(smiles)
+        mol = rdkit.Chem.MolFromSmiles(smiles)
         if mol is None:
-            raise ValueError('Unable to parse SMILES: {}'.format(smiles))
+            raise ValueError(f'Unable to parse SMILES: {smiles}')
         atoms = mol.GetAtoms()
 
-        # Encode atoms
-        atom_reprs = [atom_to_string(a) for a in atoms]
-        enc_atoms = torch.stack([self._atom_encoder.encode(a)
-                                 for a in atom_reprs])
-        enc_atoms_pad = torch.stack([
-            torch.cat((enc, torch.zeros(self.ATOM_DIM - len(enc))))
-            for enc in enc_atoms
-        ]).type(torch.float)
+        atom_reprs = [atom_to_str(atom) for atom in atoms]
+        enc_atoms = torch.stack(
+            [self._atom_encoder.encode(atom) for atom in atom_reprs]
+        ).type(torch.float32)
 
-        # Encode bonds
         bond_reprs = np.concatenate(
-            [[bond_to_string(b) for b in a.GetBonds()] for a in atoms]
+            [[bond_to_str(bond) for bond in atom.GetBonds()] for atom in atoms]
         )
-        enc_bonds = torch.stack([self._bond_encoder.encode(b)
-                                 for b in bond_reprs])
-        enc_bonds_pad = torch.stack([
-            torch.cat((enc, torch.zeros(self.BOND_DIM - len(enc))))
-            for enc in enc_bonds
-        ]).type(torch.float)
+        enc_bonds = torch.stack(
+            [self._bond_encoder.encode(bond) for bond in bond_reprs]
+        ).type(torch.float32)
 
-        # Determine COO graph connectivity
         connectivity = np.zeros((2, 2 * mol.GetNumBonds()))
         bond_index = 0
-        for atom in mol.GetAtoms():
-            start_index = atom.GetIdx()
+        for atom in atoms:
+            start_idx = atom.GetIdx()
             for bond in atom.GetBonds():
-                rev = bond.GetBeginAtomIdx() != start_index
-                if not rev:
+                reverse = bond.GetBeginAtomIdx() != start_idx
+                if not reverse:
                     connectivity[0, bond_index] = bond.GetBeginAtomIdx()
                     connectivity[1, bond_index] = bond.GetEndAtomIdx()
                 else:
@@ -148,4 +153,4 @@ class CompoundEncoder(object):
                 bond_index += 1
         connectivity = torch.from_numpy(connectivity).type(torch.long)
 
-        return (enc_atoms_pad, enc_bonds_pad, connectivity)
+        return (enc_atoms, enc_bonds, connectivity)
