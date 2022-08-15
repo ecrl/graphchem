@@ -1,8 +1,19 @@
 from setuptools import find_packages, setup
+import os
+
+
+def get_version():
+
+    fp = os.path.join('graphchem', '__init__.py')
+    vars = {}
+    with open(fp, 'r') as f:
+        exec(f.read(), vars)
+    return vars['__version__']
+
 
 setup(
     name='graphchem',
-    version='2.0.0',
+    version=get_version(),
     description='Graph-based models for chemical property prediction',
     url='https://github.com/ecrl/graphchem',
     author='Travis Kessler',
