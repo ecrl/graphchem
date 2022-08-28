@@ -2,18 +2,20 @@ from csv import DictReader
 from os import path
 from typing import List, Tuple
 
+import torch
+
 
 _CSV_PATH = path.join(path.dirname(path.abspath(__file__)), 'static')
 
 
-def _load_set(prop: str) -> Tuple[List[str], List[List[float]]]:
+def _load_set(prop: str) -> Tuple[List[str], 'torch.tensor']:
     """ loads data for a given property
 
     Args:
         prop (str): property to obtain data for
 
     Returns:
-        Tuple[List[str], List[List[float]]]: (SMILES, property values)
+        Tuple[List[str], torch.tensor]: (SMILES, property values)
     """
 
     filename = path.join(_CSV_PATH, f'{prop}.csv')
@@ -23,7 +25,9 @@ def _load_set(prop: str) -> Tuple[List[str], List[List[float]]]:
     csv_file.close()
     return (
         [r['SMILES'] for r in rows],
-        [float(r[f'{prop.upper()}']) for r in rows]
+        torch.tensor([[float(r[f'{prop.upper()}'])] for r in rows]).type(
+            torch.float32
+        )
     )
 
 

@@ -109,6 +109,24 @@ class MoleculeEncoder(object):
         self._atom_dim = len(self._atom_encoder.encode(atom_reprs[0]))
         self._bond_dim = len(self._bond_encoder.encode(bond_reprs[0]))
 
+    def encode_many(self, smiles: List[str]) -> List[
+     Tuple['torch.tensor', 'torch.tensor', 'torch.tensor']]:
+        """ batch encoding of SMILES strings
+
+        Args:
+            smiles (List[str]): list of SMILES strings
+
+        Returns:
+            List[Tuple[torch.tensor, torch.tensor, torch.tensor]]: List of:
+                (atom encoding, bond encoding, connectivity matrix) for each
+                compound
+        """
+
+        encoded_compounds = []
+        for smi in smiles:
+            encoded_compounds.append(self.encode(smi))
+        return encoded_compounds
+
     def encode(self, smiles: str) -> Tuple['torch.tensor', 'torch.tensor',
                                            'torch.tensor']:
         """ encode a molecule using its SMILES string

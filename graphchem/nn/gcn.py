@@ -11,7 +11,7 @@ class MoleculeGCN(nn.Module):
 
     def __init__(self, atom_dim: int, bond_dim: int, output_dim: int,
                  n_messages: int = 2, n_readout: int = 1,
-                 readout_dim: int = 32, dropout: float = 0.0):
+                 readout_dim: int = 16, dropout: float = 0.0):
         """ MoleculeGCN, extends torch.nn.Module; combination of MFConv and
         EdgeConv modules, two GRUs, scatter add, and feed-forward readout
         layer(s) such that:
@@ -29,7 +29,7 @@ class MoleculeGCN(nn.Module):
             n_messages (int, default=2): number of message passes between atoms
             n_readout (int, default=1): number of feed-forward post-readout
                 layers (think standard NN/MLP)
-            readout_dim (int, default=32): number of neurons in readout layers
+            readout_dim (int, default=8): number of neurons in readout layers
             dropout (float, default=0.0): random neuron dropout during training
         """
 
@@ -49,7 +49,7 @@ class MoleculeGCN(nn.Module):
 
         self.readout = nn.ModuleList()
         self.readout.append(nn.Sequential(
-            nn.Linear(2 * atom_dim, readout_dim)
+            nn.Linear(atom_dim + bond_dim, readout_dim)
         ))
         if n_readout > 1:
             for _ in range(n_readout - 1):
