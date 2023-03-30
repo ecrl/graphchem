@@ -10,7 +10,7 @@ def get_readme():
 
 def get_version_info():
 
-    version_path = os.path.join('smiles_encoder', 'version.py')
+    version_path = os.path.join('graphchem', 'version.py')
     file_vars = {}
     with open(version_path, 'r') as f:
         exec(f.read(), file_vars)
