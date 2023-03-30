@@ -10,14 +10,15 @@ from torch_scatter import scatter_add
 class MoleculeGCN(nn.Module):
 
     def __init__(self, atom_dim: int, bond_dim: int, output_dim: int,
-                 n_messages: int = 2, n_readout: int = 1,
-                 readout_dim: int = 16, dropout: float = 0.0):
+                 embedding_dim: int = 64, n_messages: int = 2,
+                 n_readout: int = 2, readout_dim: int = 64,
+                 dropout: float = 0.0):
         """ MoleculeGCN, extends torch.nn.Module; combination of MFConv and
         EdgeConv modules, two GRUs, scatter add, and feed-forward readout
         layer(s) such that:
 
-        atom_features -> MFConv -> atom GRU -> readout
-        bond_features -> EdgeConv -> bond GRU -> readout
+        atom_features -> embedding -> MFConv -> atom GRU -> readout
+        bond_features -> embedding -> EdgeConv -> bond GRU -> readout
 
         readout -> scatter add over atoms/nodes -> feed-forward layer(s)
         -> target(s)
@@ -26,6 +27,8 @@ class MoleculeGCN(nn.Module):
             atom_dim (int): number of features per atom
             bond_dim (int): number of features per bond
             output_dim (int): number of target values per compound
+            embedding_dim (int, default=16): number of embedded features for
+                atoms and bonds
             n_messages (int, default=2): number of message passes between atoms
             n_readout (int, default=1): number of feed-forward post-readout
                 layers (think standard NN/MLP)
@@ -37,19 +40,19 @@ class MoleculeGCN(nn.Module):
         self._dropout = dropout
         self._n_messages = n_messages
 
-        self.lin0_atom = nn.Linear(atom_dim, atom_dim)
-        self.lin0_bond = nn.Linear(bond_dim, bond_dim)
+        self.emb_atom = nn.Linear(atom_dim, embedding_dim)
+        self.emb_bond = nn.Linear(bond_dim, embedding_dim)
 
-        self.atom_conv = gnn.MFConv(atom_dim, atom_dim)
+        self.atom_conv = gnn.MFConv(embedding_dim, embedding_dim)
         self.bond_conv = gnn.EdgeConv(nn.Sequential(
-            nn.Linear(2 * bond_dim, bond_dim)
+            nn.Linear(2 * embedding_dim, embedding_dim)
         ))
-        self.atom_gru = nn.GRU(atom_dim, atom_dim)
-        self.bond_gru = nn.GRU(bond_dim, bond_dim)
+        self.atom_gru = nn.GRU(embedding_dim, embedding_dim)
+        self.bond_gru = nn.GRU(embedding_dim, embedding_dim)
 
         self.readout = nn.ModuleList()
         self.readout.append(nn.Sequential(
-            nn.Linear(atom_dim + bond_dim, readout_dim)
+            nn.Linear(2 * embedding_dim, readout_dim)
         ))
         if n_readout > 1:
             for _ in range(n_readout - 1):
@@ -83,8 +86,8 @@ class MoleculeGCN(nn.Module):
         if data.num_node_features == 0:
             x = torch.ones(data.num_nodes, 1)
 
-        out = F.relu(self.lin0_atom(x))
-        out_edge = F.relu(self.lin0_bond(edge_attr))
+        out = F.relu(self.emb_atom(x))
+        out_edge = F.relu(self.emb_bond(edge_attr))
         h = out.unsqueeze(0)
         h_edge = out_edge.unsqueeze(0)
 
