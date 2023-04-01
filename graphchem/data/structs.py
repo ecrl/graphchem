@@ -1,5 +1,4 @@
-from typing import List, Tuple
-
+from typing import List
 import torch
 import torch_geometric
 
@@ -30,7 +29,7 @@ class MoleculeGraph(torch_geometric.data.Data):
             x=atom_attr,
             edge_index=connectivity,
             edge_attr=bond_attr,
-            y=target
+            y=torch.tensor(target).type(torch.float).reshape(1, len(target))
         )
 
 
