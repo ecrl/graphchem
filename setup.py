@@ -28,11 +28,8 @@ setup(
     license='MIT',
     packages=find_packages(),
     install_requires=[
-        'torch==1.10.2',
-        'pytorch-nlp==0.5.0',
-        'torch-scatter==2.0.9',
-        'torch-sparse==0.6.12',
-        'torch-geometric==2.0.3'
+        'torch==2.0.0',
+        'torch-geometric==2.3.0'
     ],
     package_data={
         'graphchem': [

@@ -16,7 +16,7 @@ Future plans for GraphChem include:
 # Installation:
 
 ### Prerequisites:
-- Have Python 3.5+ installed
+- Have Python 3.8+ installed
 - Have [RDKit](https://www.rdkit.org/docs/Install.html) installed (using Conda environments is highly recommended)
 
 ### Method 1: pip
