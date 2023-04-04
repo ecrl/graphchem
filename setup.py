@@ -28,7 +28,7 @@ setup(
     license='MIT',
     packages=find_packages(),
     install_requires=[
-        'rdkit',
+        'rdkit-pypi==2022.9.5',
         'torch==2.0.0',
         'torch-geometric==2.3.0'
     ],
