@@ -172,8 +172,8 @@ class MoleculeEncoder(object):
             smiles (List[str]): list of SMILES strings
 
         Returns:
-            List[Tuple['torch.tensor']]: List of: (atom encoding, bond encoding,
-                connectivity matrix) for each compound
+            List[Tuple['torch.tensor']]: List of: (atom encoding, bond
+                encoding, connectivity matrix) for each compound
         """
 
         encoded_compounds = []
@@ -188,8 +188,8 @@ class MoleculeEncoder(object):
             smiles (str): molecule's SMILES string
 
         Returns:
-            Tuple['torch.tensor']: (encoded atom features, encoded bond features,
-                molecule connectivity matrix)
+            Tuple['torch.tensor']: (encoded atom features, encoded bond
+                features, molecule connectivity matrix)
         """
 
         mol = rdkit.Chem.MolFromSmiles(smiles)
