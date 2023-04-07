@@ -33,7 +33,7 @@ If any errors occur when installing dependencies, namely with RDKit, PyTorch, or
 
 # Usage:
 
-WIP
+For advanced usage, head over to our [API documentation page](https://graphchem.readthedocs.io/en/latest/).
 
 # Examples
 
