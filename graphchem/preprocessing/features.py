@@ -1,3 +1,5 @@
+r"""Encoding/tokenizing SMILES strings (preparing for graph construction)"""
+
 from typing import List, Tuple, Union
 import rdkit
 import numpy as np
@@ -11,7 +13,7 @@ def get_ring_size(obj: Union['rdkit.Chem.Atom', 'rdkit.Chem.Bond'],
 
     Args:
         obj (Union[rdkit.Chem.Atom, rdkit.Chem.Bond]): atom or bond
-        max_size (int, default=12): maximum ring size to consider
+        max_size (int): maximum ring size to consider
     """
 
     if not obj.IsInRing():
@@ -163,17 +165,15 @@ class MoleculeEncoder(object):
         return (self._atom_tokenizer.vocab_size,
                 self._bond_tokenizer.vocab_size)
 
-    def encode_many(self, smiles: List[str]) -> List[
-     Tuple['torch.tensor', 'torch.tensor', 'torch.tensor']]:
+    def encode_many(self, smiles: List[str]) -> List[Tuple['torch.tensor']]:
         """ batch encoding of SMILES strings
 
         Args:
             smiles (List[str]): list of SMILES strings
 
         Returns:
-            List[Tuple[torch.tensor, torch.tensor, torch.tensor]]: List of:
-                (atom encoding, bond encoding, connectivity matrix) for each
-                compound
+            List[Tuple['torch.tensor']]: List of: (atom encoding, bond
+                encoding, connectivity matrix) for each compound
         """
 
         encoded_compounds = []
@@ -181,16 +181,15 @@ class MoleculeEncoder(object):
             encoded_compounds.append(self.encode(smi))
         return encoded_compounds
 
-    def encode(self, smiles: str) -> Tuple['torch.tensor', 'torch.tensor',
-                                           'torch.tensor']:
+    def encode(self, smiles: str) -> Tuple['torch.tensor']:
         """ encode a molecule using its SMILES string
 
         Args:
             smiles (str): molecule's SMILES string
 
         Returns:
-            Tuple[torch.tensor, torch.tensor, torch.tensor]: (encoded atom
-            features, encoded bond features, molecule connectivity matrix)
+            Tuple['torch.tensor']: (encoded atom features, encoded bond
+                features, molecule connectivity matrix)
         """
 
         mol = rdkit.Chem.MolFromSmiles(smiles)

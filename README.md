@@ -11,13 +11,11 @@
 Future plans for GraphChem include:
 - Robust hyper-parameter and model architecture tuning runtimes
 - Molecule visualization via RDKit
-- Extensive automated testing
 
 # Installation:
 
 ### Prerequisites:
-- Have Python 3.8+ installed
-- Have [RDKit](https://www.rdkit.org/docs/Install.html) installed (using Conda environments is highly recommended)
+- Have Python 3.11+ installed
 
 ### Method 1: pip
 ```
@@ -31,11 +29,15 @@ $ cd graphchem
 $ python setup.py install
 ```
 
-If any errors occur when installing dependencies, namely with PyTorch or torch-geometric, visit their installation pages and follow the installation instructions: [PyTorch](https://pytorch.org/get-started/locally/), [PyTorch Geometric](https://pytorch-geometric.readthedocs.io/en/latest/notes/installation.html)
+If any errors occur when installing dependencies, namely with RDKit, PyTorch, or torch-geometric, visit their installation pages and follow the installation instructions: [RDKit](https://www.rdkit.org/docs/Install.html), [PyTorch](https://pytorch.org/get-started/locally/), [PyTorch Geometric](https://pytorch-geometric.readthedocs.io/en/latest/notes/installation.html)
 
 # Usage:
 
-API documentation is coming in the future! In the meantime, take a look at some [examples](https://github.com/ecrl/GraphChem/tree/master/examples).
+WIP
+
+# Examples
+
+To view some examples of how GraphChem can be used, head over to our [examples](https://github.com/ecrl/graphchem/tree/master/examples) folder on GitHub.
 
 # Contributing, Reporting Issues and Other Support:
 

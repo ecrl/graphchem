@@ -1,0 +1,14 @@
+site_name: GraphChem Documentation
+repo_url: https://github.com/ecrl/graphchem
+nav:
+  - Installation: index.md
+  - API Documentation:
+    - graphchem.data: api_data.md
+    - graphchem.datasets: api_datasets.md
+    - graphchem.nn: api_nn.md
+    - graphchem.preprocessing: api_preprocessing.md
+theme:
+  name: "material"
+plugins:
+  - search
+  - mkdocstrings

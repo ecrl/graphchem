@@ -1,3 +1,5 @@
+r"""MoleculeGCN, graph convolutions on vector representations of molecules"""
+
 from typing import Tuple
 import torch
 import torch.nn as nn
@@ -19,26 +21,26 @@ class MoleculeGCN(nn.Module):
         Molecule graphs are first embedded (torch.nn.Embedding), then each
         message passing operation consists of:
 
-        bond_embedding -> EdgeConv -> updated bond_embedding
-        atom_embedding + bond_embedding -> GeneralConv -> updated
+        bond_embedding > EdgeConv > updated bond_embedding
+        atom_embedding + bond_embedding > GeneralConv > updated
             atom_embedding
 
         The sum of all atom states is then passed through a series of fully-
         connected readout layers to regress on a variable:
 
-        atom_embedding -> fully-connected readout layers -> target variable
+        atom_embedding > fully-connected readout layers > target variable
 
         Args:
             atom_vocab_size (int): num features (MoleculeEncoder.vocab_sizes)
             bond_vocab_size (int): num features (MoleculeEncoder.vocab_sizes)
             output_dim (int): number of target values per compound
-            embedding_dim (int, default=64): number of embedded features for
-                atoms and bonds
-            n_messages (int, default=2): number of message passes between atoms
-            n_readout (int, default=2): number of feed-forward post-readout
+            embedding_dim (int): number of embedded features for atoms and
+                bonds
+            n_messages (int): number of message passes between atoms
+            n_readout (int): number of feed-forward post-readout
                 layers (think standard NN/MLP)
-            readout_dim (int, default=64): number of neurons in readout layers
-            dropout (float, default=0.0): random neuron dropout during training
+            readout_dim (int): number of neurons in readout layers
+            dropout (float): random neuron dropout during training
         """
 
         super(MoleculeGCN, self).__init__()
@@ -67,21 +69,21 @@ class MoleculeGCN(nn.Module):
             nn.Linear(readout_dim, output_dim)
         ))
 
-    def forward(self, data: 'torch_geometric.data.Data') -> Tuple[
-     'torch.tensor', 'torch.tensor', 'torch.tensor']:
+    def forward(self,
+                data: 'torch_geometric.data.Data') -> Tuple['torch.tensor']:
         """ forward operation for PyTorch module; given a sample of
         torch_geometric.data.Data, with atom/bond attributes and connectivity,
         perform message passing operations and readout
 
         Args:
-            data (torch_geometric.data.Data): torch_geometric data object or
+            data ('torch_geometric.data.Data'): torch_geometric data object or
                 inheritee
 
         Returns:
-            Tuple[torch.tensor, torch.tensor, torch.tensor]: (readout output
-            (target prediction), atom embeddings, bond embeddings); embeddings
-            represent pre-sum/readout values present at each atom/bond, useful
-            for determining which atoms/bonds contribute to target value
+            Tuple['torch.tensor']: (readout output (target prediction), atom
+                embeddings, bond embeddings); embeddings represent pre-sum/
+                readout values present at each atom/bond, useful for
+                determining which atoms/bonds contribute to target value
         """
 
         x, edge_attr, edge_index, batch = data.x, data.edge_attr,\
