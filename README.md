@@ -11,7 +11,6 @@
 Future plans for GraphChem include:
 - Robust hyper-parameter and model architecture tuning runtimes
 - Molecule visualization via RDKit
-- Extensive automated testing
 
 # Installation:
 

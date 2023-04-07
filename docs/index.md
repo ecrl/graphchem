@@ -9,9 +9,10 @@
 **GraphChem** is an open source Python package for constructing graph-based machine learning models with a focus on fuel property prediction. 
 
 Future plans for GraphChem include:
+
 - Robust hyper-parameter and model architecture tuning runtimes
+
 - Molecule visualization via RDKit
-- Extensive automated testing
 
 # Installation:
 
