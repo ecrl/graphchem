@@ -1,3 +1,5 @@
+r"""MoleculeGCN, graph convolutions on vector representations of molecules"""
+
 from typing import Tuple
 import torch
 import torch.nn as nn

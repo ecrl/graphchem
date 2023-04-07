@@ -1,3 +1,5 @@
+r"""Encoding/tokenizing SMILES strings (preparing for graph construction)"""
+
 from typing import List, Tuple, Union
 import rdkit
 import numpy as np

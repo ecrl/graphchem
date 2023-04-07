@@ -1,3 +1,5 @@
+r"""Pre-packaged fuel property datasets"""
+
 from csv import DictReader
 from os import path
 from typing import List, Tuple

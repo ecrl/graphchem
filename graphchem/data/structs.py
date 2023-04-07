@@ -1,3 +1,5 @@
+r"""Molecule graph structure, graph dataset"""
+
 from typing import List
 import torch
 import torch_geometric
