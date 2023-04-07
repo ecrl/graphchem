@@ -1,3 +1,4 @@
 # graphchem.nn
 
-::: graphchem.nn
+::: graphchem.nn.MoleculeGCN
+    handler: python
