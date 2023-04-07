@@ -1,3 +1,4 @@
 # graphchem.data
 
-::: graphchem.data
+::: graphchem.data.MoleculeGraph
+::: graphchem.data.MoleculeDataset
