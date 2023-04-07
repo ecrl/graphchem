@@ -13,7 +13,7 @@ def get_ring_size(obj: Union['rdkit.Chem.Atom', 'rdkit.Chem.Bond'],
 
     Args:
         obj (Union[rdkit.Chem.Atom, rdkit.Chem.Bond]): atom or bond
-        max_size (int, default=12): maximum ring size to consider
+        max_size (int): maximum ring size to consider
     """
 
     if not obj.IsInRing():
@@ -172,9 +172,8 @@ class MoleculeEncoder(object):
             smiles (List[str]): list of SMILES strings
 
         Returns:
-            List[Tuple[torch.tensor, torch.tensor, torch.tensor]]: List of:
-                (atom encoding, bond encoding, connectivity matrix) for each
-                compound
+            List[Tuple[torch.tensor]]: List of: (atom encoding, bond encoding,
+                connectivity matrix) for each compound
         """
 
         encoded_compounds = []
@@ -189,8 +188,8 @@ class MoleculeEncoder(object):
             smiles (str): molecule's SMILES string
 
         Returns:
-            Tuple[torch.tensor, torch.tensor, torch.tensor]: (encoded atom
-            features, encoded bond features, molecule connectivity matrix)
+            Tuple[torch.tensor]: (encoded atom features, encoded bond features,
+                molecule connectivity matrix)
         """
 
         mol = rdkit.Chem.MolFromSmiles(smiles)
