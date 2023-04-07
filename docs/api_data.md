@@ -1,4 +1,4 @@
 # graphchem.data
 
-::: graphchem.data
+::: graphchem.data.MoleculeGraph
     handler: python
