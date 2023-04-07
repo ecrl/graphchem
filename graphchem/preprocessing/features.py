@@ -172,7 +172,7 @@ class MoleculeEncoder(object):
             smiles (List[str]): list of SMILES strings
 
         Returns:
-            List[Tuple[torch.tensor]]: List of: (atom encoding, bond encoding,
+            List[Tuple['torch.tensor']]: List of: (atom encoding, bond encoding,
                 connectivity matrix) for each compound
         """
 
@@ -188,7 +188,7 @@ class MoleculeEncoder(object):
             smiles (str): molecule's SMILES string
 
         Returns:
-            Tuple[torch.tensor]: (encoded atom features, encoded bond features,
+            Tuple['torch.tensor']: (encoded atom features, encoded bond features,
                 molecule connectivity matrix)
         """
 

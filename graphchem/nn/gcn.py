@@ -76,14 +76,14 @@ class MoleculeGCN(nn.Module):
         perform message passing operations and readout
 
         Args:
-            data (torch_geometric.data.Data): torch_geometric data object or
+            data ('torch_geometric.data.Data'): torch_geometric data object or
                 inheritee
 
         Returns:
-            Tuple[torch.tensor]: (readout output (target prediction), atom
-            embeddings, bond embeddings); embeddings represent pre-sum/readout
-            values present at each atom/bond, useful for determining which
-            atoms/bonds contribute to target value
+            Tuple['torch.tensor']: (readout output (target prediction), atom
+                embeddings, bond embeddings); embeddings represent pre-sum/
+                readout values present at each atom/bond, useful for
+                determining which atoms/bonds contribute to target value
         """
 
         x, edge_attr, edge_index, batch = data.x, data.edge_attr,\
