@@ -1,6 +1,6 @@
-# GraphChem Documentation
-
 [![UML Energy & Combustion Research Laboratory](https://sites.uml.edu/hunter-mack/files/2021/11/ECRL_final.png)](http://faculty.uml.edu/Hunter_Mack/)
+
+# GraphChem Documentation
 
 [![GitHub version](https://badge.fury.io/gh/ecrl%2FGraphChem.svg)](https://badge.fury.io/gh/ecrl%2FGraphChem)
 [![PyPI version](https://badge.fury.io/py/graphchem.svg)](https://badge.fury.io/py/graphchem)
@@ -34,6 +34,10 @@ $ python setup.py install
 ```
 
 If any errors occur when installing dependencies, namely with RDKit, PyTorch, or torch-geometric, visit their installation pages and follow the installation instructions: [RDKit](https://www.rdkit.org/docs/Install.html), [PyTorch](https://pytorch.org/get-started/locally/), [PyTorch Geometric](https://pytorch-geometric.readthedocs.io/en/latest/notes/installation.html)
+
+# Usage:
+
+For advanced usage, head over to our [API documentation page](https://graphchem.readthedocs.io/en/latest/).
 
 # Examples
 
