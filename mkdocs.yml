@@ -9,7 +9,11 @@ nav:
 theme: material
 plugins:
   - search
-  - mkdocstrings
+  - mkdocstrings:
+    handlers:
+      python:
+        import:
+        - https://docs.python-requests.org/en/master/objects.inv
 extra_javascript:
   - javascripts/config.js
   - https://polyfill.io/v3/polyfill.min.js?features=es6
