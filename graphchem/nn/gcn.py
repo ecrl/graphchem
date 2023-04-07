@@ -69,8 +69,8 @@ class MoleculeGCN(nn.Module):
             nn.Linear(readout_dim, output_dim)
         ))
 
-    def forward(self, data: 'torch_geometric.data.Data') -> Tuple[
-     'torch.tensor', 'torch.tensor', 'torch.tensor']:
+    def forward(self,
+                data: 'torch_geometric.data.Data') -> Tuple['torch.tensor']:
         """ forward operation for PyTorch module; given a sample of
         torch_geometric.data.Data, with atom/bond attributes and connectivity,
         perform message passing operations and readout
@@ -80,10 +80,10 @@ class MoleculeGCN(nn.Module):
                 inheritee
 
         Returns:
-            Tuple[torch.tensor, torch.tensor, torch.tensor]: (readout output
-            (target prediction), atom embeddings, bond embeddings); embeddings
-            represent pre-sum/readout values present at each atom/bond, useful
-            for determining which atoms/bonds contribute to target value
+            Tuple[torch.tensor]: (readout output (target prediction), atom
+            embeddings, bond embeddings); embeddings represent pre-sum/readout
+            values present at each atom/bond, useful for determining which
+            atoms/bonds contribute to target value
         """
 
         x, edge_attr, edge_index, batch = data.x, data.edge_attr,\

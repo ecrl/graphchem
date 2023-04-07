@@ -165,8 +165,7 @@ class MoleculeEncoder(object):
         return (self._atom_tokenizer.vocab_size,
                 self._bond_tokenizer.vocab_size)
 
-    def encode_many(self, smiles: List[str]) -> List[
-     Tuple['torch.tensor', 'torch.tensor', 'torch.tensor']]:
+    def encode_many(self, smiles: List[str]) -> List[Tuple['torch.tensor']]:
         """ batch encoding of SMILES strings
 
         Args:
@@ -183,8 +182,7 @@ class MoleculeEncoder(object):
             encoded_compounds.append(self.encode(smi))
         return encoded_compounds
 
-    def encode(self, smiles: str) -> Tuple['torch.tensor', 'torch.tensor',
-                                           'torch.tensor']:
+    def encode(self, smiles: str) -> Tuple['torch.tensor']:
         """ encode a molecule using its SMILES string
 
         Args:

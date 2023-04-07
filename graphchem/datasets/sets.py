@@ -2,7 +2,7 @@ r"""Pre-packaged fuel property datasets"""
 
 from csv import DictReader
 from os import path
-from typing import List, Tuple
+from typing import List, Tuple, Union
 
 import torch
 
@@ -10,14 +10,14 @@ import torch
 _CSV_PATH = path.join(path.dirname(path.abspath(__file__)), 'static')
 
 
-def _load_set(prop: str) -> Tuple[List[str], 'torch.tensor']:
+def _load_set(prop: str) -> Tuple[Union[List[str], 'torch.tensor']]:
     """ loads data for a given property
 
     Args:
         prop (str): property to obtain data for
 
     Returns:
-        Tuple[List[str], torch.tensor]: (SMILES, property values)
+        Tuple[Union[List[str], 'torch.tensor']]: (SMILES, property values)
     """
 
     filename = path.join(_CSV_PATH, f'{prop}.csv')
@@ -33,51 +33,51 @@ def _load_set(prop: str) -> Tuple[List[str], 'torch.tensor']:
     )
 
 
-def load_cn() -> Tuple[List[str], List[List[float]]]:
+def load_cn() -> Tuple[Union[List[str], 'torch.tensor']]:
     """ loads cetane number data
 
     Returns:
-        Tuple[List[str], List[List[float]]]: (SMILES, CN values)
+        Tuple[Union[List[str], 'torch.tensor']]: (SMILES, CN values)
     """
 
     return _load_set('cn')
 
 
-def load_lhv() -> Tuple[List[str], List[List[float]]]:
+def load_lhv() -> Tuple[Union[List[str], 'torch.tensor']]:
     """ loads lower heating value data
 
     Returns:
-        Tuple[List[str], List[List[float]]]: (SMILES, LHV values)
+        Tuple[Union[List[str], 'torch.tensor']]: (SMILES, LHV values)
     """
 
     return _load_set('lhv')
 
 
-def load_mon() -> Tuple[List[str], List[List[float]]]:
+def load_mon() -> Tuple[Union[List[str], 'torch.tensor']]:
     """ loads motor octane number data
 
     Returns:
-        Tuple[List[str], List[List[float]]]: (SMILES, MON values)
+        Tuple[Union[List[str], 'torch.tensor']]: (SMILES, MON values)
     """
 
     return _load_set('mon')
 
 
-def load_ron() -> Tuple[List[str], List[List[float]]]:
+def load_ron() -> Tuple[Union[List[str], 'torch.tensor']]:
     """ loads research octane number data
 
     Returns:
-        Tuple[List[str], List[List[float]]]: (SMILES, RON values)
+        Tuple[Union[List[str], 'torch.tensor']]: (SMILES, RON values)
     """
 
     return _load_set('ron')
 
 
-def load_ysi() -> Tuple[List[str], List[List[float]]]:
+def load_ysi() -> Tuple[Union[List[str], 'torch.tensor']]:
     """ loads yield sooting index data
 
     Returns:
-        Tuple[List[str], List[List[float]]]: (SMILES, YSI values)
+        Tuple[Union[List[str], 'torch.tensor']]: (SMILES, YSI values)
     """
 
     return _load_set('ysi')
