@@ -2,11 +2,25 @@ site_name: GraphChem Documentation
 repo_url: https://github.com/ecrl/graphchem
 nav:
   - Installation: index.md
-  - API Documentation:
-    - graphchem.data: api_data.md
-    - graphchem.datasets: api_datasets.md
-    - graphchem.nn: api_nn.md
-    - graphchem.preprocessing: api_preprocessing.md
+  - 'API Documentation':
+    - 'graphchem.data':
+      - 'graphchem.data.MoleculeDataset': 'api_data/moleculedataset.md'
+      - 'graphchem.data.MoleculeGraph': 'api_data/moleculegraph.md'
+    - 'graphchem.datasets':
+      - 'graphchem.datasets.load_cn': 'api_datasets/load_cn.md'
+      - 'graphchem.datasets.load_lhv': 'api_datasets/load_lhv.md'
+      - 'graphchem.datasets.load_mon': 'api_datasets/load_mon.md'
+      - 'graphchem.datasets.load_ron': 'api_datasets/load_ron.md'
+      - 'graphchem.datasets.load_ysi': 'api_datasets/load_ysi.md'
+    - 'graphchem.nn':
+      - 'graphchem.nn.MoleculeGCN': 'api_nn/moleculegcn.md'
+    - 'graphchem.preprocessing':
+      - 'graphchem.preprocessing.atom_to_str': 'api_preprocessing/atom_to_str.md'
+      - 'graphchem.preprocessing.bond_to_str': 'api_preprocessing/bond_to_str.md'
+      - 'graphchem.preprocessing.get_ring_size': 'api_preprocessing/get_ring_size.md'
+      - 'graphchem.preprocessing.load_encoder': 'api_preprocessing/load_encoder.md'
+      - 'graphchem.preprocessing.MoleculeEncoder': 'api_preprocessing/moleculeencoder.md'
+      - 'graphchem.preprocessing.Tokenizer': 'api_preprocessing/tokenizer.md'
 theme:
   name: "material"
 plugins:
