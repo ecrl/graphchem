@@ -6,7 +6,6 @@
 [![PyPI version](https://badge.fury.io/py/graphchem.svg)](https://badge.fury.io/py/graphchem)
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/ecrl/GraphChem/master/LICENSE.txt)
 [![Documentation Status](https://readthedocs.org/projects/graphchem/badge/?version=latest)](https://graphchem.readthedocs.io/en/latest/?badge=latest)
-[![Build Status](https://dev.azure.com/uml-ecrl/package-management/_apis/build/status%2Fecrl.graphchem?branchName=master)](https://dev.azure.com/uml-ecrl/package-management/_build/latest?definitionId=6&branchName=master)
 
 **GraphChem** is an open source Python package for constructing graph-based machine learning models with a focus on fuel property prediction.
 
