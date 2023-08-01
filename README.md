@@ -8,11 +8,7 @@
 [![Documentation Status](https://readthedocs.org/projects/graphchem/badge/?version=latest)](https://graphchem.readthedocs.io/en/latest/?badge=latest)
 [![Build Status](https://dev.azure.com/uml-ecrl/package-management/_apis/build/status%2Fecrl.graphchem?branchName=master)](https://dev.azure.com/uml-ecrl/package-management/_build/latest?definitionId=6&branchName=master)
 
-**GraphChem** is an open source Python package for constructing graph-based machine learning models with a focus on fuel property prediction. 
-
-Future plans for GraphChem include:
-- Robust hyper-parameter and model architecture tuning runtimes
-- Molecule visualization via RDKit
+**GraphChem** is an open source Python package for constructing graph-based machine learning models with a focus on fuel property prediction.
 
 # Installation:
 
@@ -28,7 +24,7 @@ $ pip install graphchem
 ```
 $ git clone https://github.com/ecrl/graphchem
 $ cd graphchem
-$ python setup.py install
+$ python -m pip install .
 ```
 
 If any errors occur when installing dependencies, namely with RDKit, PyTorch, or torch-geometric, visit their installation pages and follow the installation instructions: [RDKit](https://www.rdkit.org/docs/Install.html), [PyTorch](https://pytorch.org/get-started/locally/), [PyTorch Geometric](https://pytorch-geometric.readthedocs.io/en/latest/notes/installation.html)

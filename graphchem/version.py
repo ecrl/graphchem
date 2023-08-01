@@ -1,3 +1,3 @@
-VERSION = (2, 1, 1, "")
-__version__ = ".".join(map(str, VERSION[:-1]))
-__release__ = ".".join(map(str, VERSION))
+import pkg_resources
+
+__version__ = pkg_resources.get_distribution("graphchem").version

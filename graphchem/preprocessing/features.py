@@ -1,5 +1,6 @@
 r"""Encoding/tokenizing SMILES strings (preparing for graph construction)"""
 
+import pickle
 from typing import List, Tuple, Union
 import rdkit
 import numpy as np
@@ -223,3 +224,45 @@ class MoleculeEncoder(object):
         connectivity = torch.from_numpy(connectivity).type(torch.long)
 
         return (enc_atoms, enc_bonds, connectivity)
+
+    def save(self, filename: str) -> None:
+        """ save the encoder to a file
+
+        Args:
+            filename (str): new filename/path for model
+
+        Returns:
+            None
+        """
+
+        with open(filename, 'wb') as outp:
+            pickle.dump(self, outp, pickle.HIGHEST_PROTOCOL)
+
+    def load(self, filename: str) -> None:
+        """ load an encoder from file (current encoder attributes, including
+        pre-trained tokenizers, are overwritten)
+
+        Args:
+            filename (str): filename/path of model
+
+        Returns:
+            None
+        """
+
+        with open(filename, 'rb') as inp:
+            self.__dict__.update(pickle.loads(inp).__dict__)
+
+
+def load_encoder(filename: str) -> MoleculeEncoder:
+    """ loads a pre-saved `MoleculeEncoder` object
+
+    Args:
+        filename (str): filename/path of saved encoder
+
+    Returns:
+        MoleculeEncoder: loaded encoder object
+    """
+
+    with open(filename, 'rb') as inp:
+        encoder = pickle.loads(inp)
+    return encoder

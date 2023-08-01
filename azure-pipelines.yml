@@ -17,7 +17,7 @@ steps:
 
 - script: |
     python -m pip install --upgrade pip setuptools wheel
-    python setup.py install
+    python -m pip install .
   displayName: 'Install dependencies'
 
 - script: |
