@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+py-modules = ["graphchem"]
+
+[project]
+name = "graphchem"
+version = "2.1.2"
+authors = [
+    { name="Travis Kessler", email="travis.j.kessler@gmail.com" },
+]
+description = "Graph-based machine learning for chemical property prediction"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "rdkit-pypi==2022.9.5",
+    "torch==2.0.0",
+    "torch-geometric==2.3.0",
+]
+classifiers = [
+    "Programming Language :: Python :: 3.11",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/ecrl/graphchem"
+"Bug Tracker" = "https://github.com/ecrl/graphchem/issues"
