@@ -2,9 +2,6 @@
 requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
-[tool.setuptools]
-py-modules = ["graphchem"]
-
 [project]
 name = "graphchem"
 version = "2.1.2"
