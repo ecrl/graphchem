@@ -1,11 +1,5 @@
 import graphchem
 
 
-def main():
-
-    return
-
-
-if __name__ == '__main__':
-
-    main()
+def test_placeholder():
+    assert 1 == 1
