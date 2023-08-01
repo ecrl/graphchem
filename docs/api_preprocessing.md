@@ -3,6 +3,9 @@
 ::: graphchem.preprocessing.MoleculeEncoder
     handler: python
 
+::: graphchem.preprocessing.load_encoder
+    handler: python
+
 ::: graphchem.preprocessing.Tokenizer
     handler: python
 
