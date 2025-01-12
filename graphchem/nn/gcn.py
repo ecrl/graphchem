@@ -76,18 +76,23 @@ class MoleculeGCN(nn.Module):
             nn.Linear(2 * embedding_dim, embedding_dim)
         ))
 
-        self.readout = nn.ModuleList()
-        self.readout.append(nn.Sequential(
-            nn.Linear(embedding_dim, readout_dim)
-        ))
-        if n_readout > 1:
-            for _ in range(n_readout - 1):
-                self.readout.append(nn.Sequential(
-                    nn.Linear(readout_dim, readout_dim)
-                ))
-        self.readout.append(nn.Sequential(
-            nn.Linear(readout_dim, output_dim)
-        ))
+        if n_readout > 0:
+
+            self.readout = nn.ModuleList()
+            self.readout.append(nn.Sequential(
+                nn.Linear(embedding_dim, readout_dim)
+            ))
+            if n_readout > 1:
+                for _ in range(n_readout - 1):
+                    self.readout.append(nn.Sequential(
+                        nn.Linear(readout_dim, readout_dim)
+                    ))
+            self.readout.append(nn.Sequential(
+                nn.Linear(readout_dim, output_dim)
+            ))
+
+        else:
+            self.readout = None
 
     def forward(
             self,
@@ -138,14 +143,16 @@ class MoleculeGCN(nn.Module):
 
         out = global_add_pool(out_atom, batch)
 
-        for layer in self.readout[:-1]:
+        if self.readout is not None:
 
-            out = layer(out)
-            out = F.softplus(out)
-            out = F.dropout(
-                out, p=self._p_dropout, training=self.training
-            )
+            for layer in self.readout[:-1]:
 
-        out = self.readout[-1](out)
+                out = layer(out)
+                out = F.softplus(out)
+                out = F.dropout(
+                    out, p=self._p_dropout, training=self.training
+                )
+
+            out = self.readout[-1](out)
 
         return (out, out_atom, out_bond)
