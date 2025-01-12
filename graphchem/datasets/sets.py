@@ -1,83 +1,107 @@
-r"""Pre-packaged fuel property datasets"""
-
 from csv import DictReader
 from os import path
-from typing import List, Tuple, Union
+from typing import List, Tuple
 
 import torch
 
 
-_CSV_PATH = path.join(path.dirname(path.abspath(__file__)), 'static')
+_CSV_PATH = path.join(path.dirname(path.abspath(__file__)), "static")
 
 
-def _load_set(prop: str) -> Tuple[Union[List[str], 'torch.tensor']]:
-    """ loads data for a given property
-
-    Args:
-        prop (str): property to obtain data for
-
-    Returns:
-        Tuple[Union[List[str], 'torch.tensor']]: (SMILES, property values)
+def _load_set(prop: str) -> Tuple[List[str], torch.Tensor]:
     """
+    Loads data for a given property from a CSV file.
 
-    filename = path.join(_CSV_PATH, f'{prop}.csv')
-    with open(filename, 'r') as csv_file:
+    Parameters
+    ----------
+    prop : str
+        The property to obtain data for.
+
+    Returns
+    -------
+    Tuple[List[str], torch.Tensor]
+        A tuple containing two elements:
+        - List[str]: A list of SMILES strings.
+        - torch.Tensor: A tensor of property values with dtype float32.
+    """
+    filename = path.join(_CSV_PATH, f"{prop}.csv")
+    with open(filename, "r") as csv_file:
         reader = DictReader(csv_file)
         rows = [r for r in reader]
     csv_file.close()
     return (
-        [r['SMILES'] for r in rows],
-        torch.tensor([[float(r[f'{prop.upper()}'])] for r in rows]).type(
+        [r["SMILES"] for r in rows],
+        torch.tensor([[float(r[f"{prop.upper()}"])] for r in rows]).type(
             torch.float32
         )
     )
 
 
-def load_cn() -> Tuple[Union[List[str], 'torch.tensor']]:
-    """ loads cetane number data
-
-    Returns:
-        Tuple[Union[List[str], 'torch.tensor']]: (SMILES, CN values)
+def load_cn() -> Tuple[List[str], torch.Tensor]:
     """
+    Loads cetane number data.
 
-    return _load_set('cn')
-
-
-def load_lhv() -> Tuple[Union[List[str], 'torch.tensor']]:
-    """ loads lower heating value data
-
-    Returns:
-        Tuple[Union[List[str], 'torch.tensor']]: (SMILES, LHV values)
+    Returns
+    -------
+    Tuple[List[str], torch.Tensor]
+        A tuple containing two elements:
+        - List[str]: A list of SMILES strings.
+        - torch.Tensor: A tensor of CN values with dtype float32.
     """
+    return _load_set("cn")
 
-    return _load_set('lhv')
 
-
-def load_mon() -> Tuple[Union[List[str], 'torch.tensor']]:
-    """ loads motor octane number data
-
-    Returns:
-        Tuple[Union[List[str], 'torch.tensor']]: (SMILES, MON values)
+def load_lhv() -> Tuple[List[str], torch.Tensor]:
     """
+    Loads lower heating value data.
 
-    return _load_set('mon')
-
-
-def load_ron() -> Tuple[Union[List[str], 'torch.tensor']]:
-    """ loads research octane number data
-
-    Returns:
-        Tuple[Union[List[str], 'torch.tensor']]: (SMILES, RON values)
+    Returns
+    -------
+    Tuple[List[str], torch.Tensor]
+        A tuple containing two elements:
+        - List[str]: A list of SMILES strings.
+        - torch.Tensor: A tensor of LHV values with dtype float32.
     """
+    return _load_set("lhv")
 
-    return _load_set('ron')
 
-
-def load_ysi() -> Tuple[Union[List[str], 'torch.tensor']]:
-    """ loads yield sooting index data
-
-    Returns:
-        Tuple[Union[List[str], 'torch.tensor']]: (SMILES, YSI values)
+def load_mon() -> Tuple[List[str], torch.Tensor]:
     """
+    Loads motor octane number data.
 
-    return _load_set('ysi')
+    Returns
+    -------
+    Tuple[List[str], torch.Tensor]
+        A tuple containing two elements:
+        - List[str]: A list of SMILES strings.
+        - torch.Tensor: A tensor of MON values with dtype float32.
+    """
+    return _load_set("mon")
+
+
+def load_ron() -> Tuple[List[str], torch.Tensor]:
+    """
+    Loads research octane number data.
+
+    Returns
+    -------
+    Tuple[List[str], torch.Tensor]
+        A tuple containing two elements:
+        - List[str]: A list of SMILES strings.
+        - torch.Tensor: A tensor of RON values with dtype float32.
+    """
+    return _load_set("ron")
+
+
+def load_ysi() -> Tuple[List[str], torch.Tensor]:
+    """
+    Loads yield sooting index data.
+
+    Returns
+    -------
+    Tuple[List[str], torch.Tensor]
+        A tuple containing two elements:
+        - List[str]: A list of SMILES strings.
+        - torch.Tensor: A tensor of YSI values with dtype float32.
+    """
+    return _load_set("ysi")
