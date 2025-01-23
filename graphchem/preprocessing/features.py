@@ -7,7 +7,7 @@ import torch
 
 
 def get_ring_size(
-        obj: Union[rdkit.Chem.Atom, rdkit.Chem.Bond],
+        obj: Union["rdkit.Chem.Atom", "rdkit.Chem.Bond"],
         max_size: Optional[int] = 12
      ) -> int:
     """
@@ -35,7 +35,7 @@ def get_ring_size(
     return max_size
 
 
-def atom_to_str(atom: rdkit.Chem.Atom) -> str:
+def atom_to_str(atom: "rdkit.Chem.Atom") -> str:
     """
     Convert an RDKit Atom object to a string representation.
 
@@ -82,7 +82,7 @@ def atom_to_str(atom: rdkit.Chem.Atom) -> str:
     ))
 
 
-def bond_to_str(bond: rdkit.Chem.Bond) -> str:
+def bond_to_str(bond: "rdkit.Chem.Bond") -> str:
     """
     Convert an RDKit Bond object to a string representation.
 
