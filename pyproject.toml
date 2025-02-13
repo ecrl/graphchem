@@ -7,7 +7,7 @@ include-package-data = true
 
 [project]
 name = "graphchem"
-version = "2.3.2"
+version = "2.3.3"
 authors = [
     { name="Travis Kessler", email="travis.j.kessler@gmail.com" },
 ]

@@ -3,6 +3,7 @@ from typing import Iterable, List, Optional, Tuple, Union
 
 import numpy as np
 import rdkit
+from rdkit import Chem
 import torch
 
 
@@ -221,7 +222,7 @@ class MoleculeEncoder(object):
         ValueError
             If any provided SMILES string cannot be parsed by RDKit.
         """
-        mols = [rdkit.Chem.MolFromSmiles(smi) for smi in smiles]
+        mols = [Chem.MolFromSmiles(smi) for smi in smiles]
         for idx, mol in enumerate(mols):
             if mol is None:
                 raise ValueError(f"Unable to parse SMILES: {smiles[idx]}")
