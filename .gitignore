@@ -79,6 +79,7 @@ doc/xml/
 doc/_build/
 doc/source
 doc/modules
+docs/_build/
 
 # Environments
 .env
@@ -109,3 +110,9 @@ tags
 
 # version file
 graphchem/_version.py
+# Local agent tooling (maintainer-only; not part of published package)
+AGENTS.md
+CLAUDE.md
+.github/copilot-instructions.md
+.cursor/
+docs/blueprint/

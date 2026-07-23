@@ -5,26 +5,79 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools]
 include-package-data = true
 
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+graphchem = ["datasets/static/*.csv", "py.typed"]
+
 [project]
 name = "graphchem"
-version = "2.3.3"
+version = "2.3.4"
 authors = [
     { name="Travis Kessler", email="travis.j.kessler@gmail.com" },
 ]
 description = "Graph-based machine learning for chemical property prediction"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.10"
+license = { text = "MIT" }
 dependencies = [
-    "rdkit-pypi==2022.9.5",
-    "torch==2.5.1",
-    "torch-geometric==2.6.1"
+    "numpy>=1.26,<3",
+    "rdkit>=2025.9.1,<2026",
+    "torch>=2.5,<3",
+    "torch-geometric>=2.6,<3",
+    "tomli>=2.0.1; python_version < '3.11'",
 ]
 classifiers = [
+    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8",
+    "pytest-cov>=6",
+    "ruff>=0.8",
+    "pre-commit>=4",
+    "build>=1.2",
+    "pip-audit>=2.7",
+]
+docs = [
+    "sphinx>=7",
+    "furo>=2024.8",
+    "sphinx-autodoc-typehints>=2",
+    "sphinx-copybutton>=0.5",
+]
+examples = [
+    "scikit-learn>=1.5",
+    "matplotlib>=3.8",
+    "jupyter>=1.0",
 ]
 
 [project.urls]
 "Homepage" = "https://github.com/ecrl/graphchem"
 "Bug Tracker" = "https://github.com/ecrl/graphchem/issues"
+
+[tool.coverage.run]
+source = ["graphchem"]
+branch = false
+
+[tool.coverage.report]
+fail_under = 90
+show_missing = true
+skip_empty = true
+
+[tool.ruff]
+target-version = "py310"
+src = ["src", "tests"]
+line-length = 88
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["graphchem"]

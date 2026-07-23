@@ -1,2 +1,5 @@
-mkdocs-material
-mkdocstrings-python
+# Sphinx documentation dependencies (also available via `pip install -e ".[docs]"`)
+sphinx>=7
+furo>=2024.8
+sphinx-autodoc-typehints>=2
+sphinx-copybutton>=0.5

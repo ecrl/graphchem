@@ -1,1 +1,2 @@
-include graphchem/datasets/static/*.csv
+include src/graphchem/datasets/static/*.csv
+include src/graphchem/py.typed

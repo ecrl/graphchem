@@ -1,7 +1,13 @@
 from rdkit import Chem
 
-from graphchem.preprocessing.features import get_ring_size, atom_to_str, \
-    bond_to_str, Tokenizer, MoleculeEncoder, load_encoder
+from graphchem.preprocessing.features import (
+    MoleculeEncoder,
+    Tokenizer,
+    atom_to_str,
+    bond_to_str,
+    get_ring_size,
+    load_encoder,
+)
 
 
 # Helper function to create a simple molecule for testing
@@ -10,7 +16,7 @@ def create_test_molecule(smiles):
     return Chem.MolFromSmiles(smiles)
 
 
-# Test cases for get_ring_size
+# Test cases for get_ring_size (atom and bond paths)
 def test_get_ring_size():
 
     # Create a benzene ring (C6H6)
@@ -20,72 +26,57 @@ def test_get_ring_size():
     for atom in mol.GetAtoms():
         assert get_ring_size(atom) == 6
 
+    # Bond path: aromatic ring bonds are size 6
+    for bond in mol.GetBonds():
+        assert get_ring_size(bond) == 6
+
     # Create an ethane molecule (C2H6)
     mol = create_test_molecule("CC")
 
     # Check that there are no rings in this molecule
     for atom in mol.GetAtoms():
         assert get_ring_size(atom) == 0
+    for bond in mol.GetBonds():
+        assert get_ring_size(bond) == 0
 
-    # Test max_size parameter
+    # Test max_size parameter on atoms and bonds
     mol = create_test_molecule("C1=CC=CC=C1")
     for atom in mol.GetAtoms():
         assert get_ring_size(atom, max_size=5) == 5
+    for bond in mol.GetBonds():
+        assert get_ring_size(bond, max_size=5) == 5
 
 
-# Test cases for atom_to_str
+# Property-level checks for atom_to_str (full strings locked by encoding oracles)
 def test_atom_to_str():
 
-    # Create a benzene ring (C1=CC=CC=C1)
     mol = create_test_molecule("C1=CC=CC=C1")
-
-    # Check the string representation of each atom in the molecule
-    for i, expected in enumerate([
-        "(rdkit.Chem.rdchem.ChiralType.CHI_UNSPECIFIED, 2, 3, 0, rdkit.Chem."
-            "rdchem.HybridizationType.SP2, 1, True, False, 0, 1, 0, 'C', 3, "
-            "1, 4, 6)",
-        "(rdkit.Chem.rdchem.ChiralType.CHI_UNSPECIFIED, 2, 3, 0, rdkit.Chem."
-            "rdchem.HybridizationType.SP2, 1, True, False, 0, 1, 0, 'C', 3, "
-            "1, 4, 6)",
-        "(rdkit.Chem.rdchem.ChiralType.CHI_UNSPECIFIED, 2, 3, 0, rdkit.Chem."
-            "rdchem.HybridizationType.SP2, 1, True, False, 0, 1, 0, 'C', 3, "
-            "1, 4, 6)",
-        "(rdkit.Chem.rdchem.ChiralType.CHI_UNSPECIFIED, 2, 3, 0, rdkit.Chem."
-            "rdchem.HybridizationType.SP2, 1, True, False, 0, 1, 0, 'C', 3, "
-            "1, 4, 6)",
-        "(rdkit.Chem.rdchem.ChiralType.CHI_UNSPECIFIED, 2, 3, 0, rdkit.Chem."
-            "rdchem.HybridizationType.SP2, 1, True, False, 0, 1, 0, 'C', 3, "
-            "1, 4, 6)",
-        "(rdkit.Chem.rdchem.ChiralType.CHI_UNSPECIFIED, 2, 3, 0, rdkit.Chem."
-            "rdchem.HybridizationType.SP2, 1, True, False, 0, 1, 0, 'C', 3, "
-            "1, 4, 6)"
-    ]):
-        assert atom_to_str(mol.GetAtomWithIdx(i)) == expected
+    for atom in mol.GetAtoms():
+        assert atom.GetSymbol() == "C"
+        assert atom.GetIsAromatic() is True
+        assert atom.GetHybridization() == Chem.HybridizationType.SP2
+        assert get_ring_size(atom) == 6
+        token = atom_to_str(atom)
+        assert isinstance(token, str) and token
+        assert "'C'" in token
+        assert "True" in token  # aromatic flag appears in the tuple dump
+        assert token.endswith(", 6)")
 
 
-# Test cases for bond_to_str
+# Property-level checks for bond_to_str (full strings locked by encoding oracles)
 def test_bond_to_str():
 
-    # Create a benzene ring (C1=CC=CC=C1)
     mol = create_test_molecule("C1=CC=CC=C1")
-
-    # Check the string representation of each bond in the molecule
-    for i, expected in enumerate([
-        "(rdkit.Chem.rdchem.BondType.AROMATIC, True, rdkit.Chem.rdchem."
-            "BondStereo.STEREONONE, 6, [['C', 'C']])",
-        "(rdkit.Chem.rdchem.BondType.AROMATIC, True, rdkit.Chem.rdchem."
-            "BondStereo.STEREONONE, 6, [['C', 'C']])",
-        "(rdkit.Chem.rdchem.BondType.AROMATIC, True, rdkit.Chem.rdchem."
-            "BondStereo.STEREONONE, 6, [['C', 'C']])",
-        "(rdkit.Chem.rdchem.BondType.AROMATIC, True, rdkit.Chem.rdchem."
-            "BondStereo.STEREONONE, 6, [['C', 'C']])",
-        "(rdkit.Chem.rdchem.BondType.AROMATIC, True, rdkit.Chem.rdchem."
-            "BondStereo.STEREONONE, 6, [['C', 'C']])",
-        "(rdkit.Chem.rdchem.BondType.AROMATIC, True, rdkit.Chem.rdchem."
-            "BondStereo.STEREONONE, 6, [['C', 'C']])"
-    ]):
-        bond = mol.GetBondWithIdx(i)
-        assert bond_to_str(bond) == expected
+    for bond in mol.GetBonds():
+        assert bond.GetBondType() == Chem.BondType.AROMATIC
+        assert bond.GetIsConjugated() is True
+        assert get_ring_size(bond) == 6
+        token = bond_to_str(bond)
+        assert isinstance(token, str) and token
+        assert "AROMATIC" in token
+        assert "True" in token
+        assert "['C', 'C']" in token
+        assert ", 6," in token
 
 
 # Test cases for max_size parameter in get_ring_size
@@ -94,11 +85,15 @@ def test_get_ring_size_max_size():
     # Create a benzene ring (C1=CC=CC=C1)
     mol = create_test_molecule("C1=CC=CC=C1")
 
-    # Check ring size with different max_size values
+    # Check ring size with different max_size values (atoms and bonds)
     for atom in mol.GetAtoms():
         assert get_ring_size(atom, max_size=5) == 5
         assert get_ring_size(atom, max_size=6) == 6
         assert get_ring_size(atom, max_size=7) == 6
+    for bond in mol.GetBonds():
+        assert get_ring_size(bond, max_size=5) == 5
+        assert get_ring_size(bond, max_size=6) == 6
+        assert get_ring_size(bond, max_size=7) == 6
 
 
 # Test cases adding tokens to a Tokenizer object

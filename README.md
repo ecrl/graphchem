@@ -4,42 +4,60 @@
 
 [![GitHub version](https://badge.fury.io/gh/ecrl%2FGraphChem.svg)](https://badge.fury.io/gh/ecrl%2FGraphChem)
 [![PyPI version](https://badge.fury.io/py/graphchem.svg)](https://badge.fury.io/py/graphchem)
-[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/ecrl/GraphChem/master/LICENSE.txt)
+[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/ecrl/graphchem/master/LICENSE)
 [![Documentation Status](https://readthedocs.org/projects/graphchem/badge/?version=latest)](https://graphchem.readthedocs.io/en/latest/?badge=latest)
 
 **GraphChem** is an open source Python package for constructing graph-based machine learning models with a focus on fuel property prediction.
 
-# Installation:
+# Installation
 
-### Prerequisites:
-- Have Python 3.11+ installed
+### Prerequisites
+
+- Python 3.10 or newer
 
 ### Method 1: pip
+
 ```
 $ pip install graphchem
 ```
 
-### Method 2: From Source
+### Method 2: From source
+
 ```
 $ git clone https://github.com/ecrl/graphchem
 $ cd graphchem
 $ python -m pip install .
 ```
 
-If any errors occur when installing dependencies, namely with RDKit, PyTorch, or torch-geometric, visit their installation pages and follow the installation instructions: [RDKit](https://www.rdkit.org/docs/Install.html), [PyTorch](https://pytorch.org/get-started/locally/), [PyTorch Geometric](https://pytorch-geometric.readthedocs.io/en/latest/notes/installation.html)
+If installation fails for RDKit, PyTorch, or torch-geometric, follow the vendor guides: [RDKit](https://www.rdkit.org/docs/Install.html), [PyTorch](https://pytorch.org/get-started/locally/), [PyTorch Geometric](https://pytorch-geometric.readthedocs.io/en/latest/notes/installation.html).
 
-# Usage:
+# Documentation
 
-For advanced usage, head over to our [API documentation page](https://graphchem.readthedocs.io/en/latest/).
+- [Read the Docs (Sphinx)](https://graphchem.readthedocs.io/en/latest/) — installation, quickstart, API, datasets, stability policy
+- [API_STABILITY.md](API_STABILITY.md) — source-tree pointer to the frozen public surface
+- [CHANGELOG.md](CHANGELOG.md)
 
 # Examples
 
-To view some examples of how GraphChem can be used, head over to our [examples](https://github.com/ecrl/graphchem/tree/master/examples) folder on GitHub.
+Notebooks are under [`examples/`](https://github.com/ecrl/graphchem/tree/master/examples) on GitHub. See also the tutorials page in the docs.
 
-# Contributing, Reporting Issues and Other Support:
+For reproducible runs, set seeds before training or evaluation, for example:
 
-To contribute to GraphChem, make a pull request. Contributions should include tests for new features added, as well as extensive documentation.
+```python
+import numpy as np
+import torch
 
-To report problems with the software or feature requests, file an issue. When reporting problems, include information such as error messages, your OS/environment and Python version.
+torch.manual_seed(0)
+np.random.seed(0)
+```
 
-For additional support/questions, contact Travis Kessler (Travis_Kessler@student.uml.edu).
+Exact numeric results can still vary across platforms and dependency wheel builds (RDKit / PyTorch / PyG).
+
+# Contributing and support
+
+- Contribute via pull request; follow [CONTRIBUTING.md](CONTRIBUTING.md)
+- Report bugs and feature requests with [GitHub Issues](https://github.com/ecrl/graphchem/issues)
+- Security reports: [SECURITY.md](SECURITY.md)
+- Code of conduct: [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
+
+For additional questions, contact Travis Kessler (`travis.j.kessler@gmail.com`).

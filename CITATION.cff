@@ -1,0 +1,23 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+type: software
+title: "GraphChem: Graph-based machine learning for chemical property prediction"
+abstract: >-
+  Open-source Python package for constructing graph neural network models that
+  predict fuel properties from molecular structure (SMILES encoding, PyTorch
+  Geometric datasets, MoleculeGCN, and bundled property datasets).
+authors:
+  - family-names: Kessler
+    given-names: Travis
+    email: travis.j.kessler@gmail.com
+repository-code: "https://github.com/ecrl/graphchem"
+url: "https://graphchem.readthedocs.io/"
+license: MIT
+version: "2.3.4"
+date-released: "2026-07-22"
+keywords:
+  - cheminformatics
+  - graph-neural-networks
+  - fuel-properties
+  - pytorch-geometric
+  - rdkit
