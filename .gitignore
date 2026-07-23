@@ -116,3 +116,5 @@ CLAUDE.md
 .github/copilot-instructions.md
 .cursor/
 docs/blueprint/
+# Local design drafts (committed only when ready for release)
+docs/design/DESIGN_v3.md
