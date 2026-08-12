@@ -23,7 +23,7 @@ requires-python = ">=3.10"
 license = { text = "MIT" }
 dependencies = [
     "numpy>=1.26,<3",
-    "rdkit>=2025.9.1,<2026",
+    "rdkit>=2025.9.1,<2027",
     "torch>=2.5,<3",
     "torch-geometric>=2.6,<3",
     "tomli>=2.0.1; python_version < '3.11'",
